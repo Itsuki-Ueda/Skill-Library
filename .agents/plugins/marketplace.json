@@ -1,0 +1,19 @@
+{
+  "name": "ueda",
+  "interface": {
+    "displayName": "Ueda Skill Library"
+  },
+  "plugins": [
+    {
+      "name": "skill-library",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "レビュア"
+  short_description: "根拠付きP0-P3レビュー規律"
+  default_prompt: "$reviewer を使って、この差分またはプランをVERDICT、P0-P3指摘、根拠付きでレビューしてください。"

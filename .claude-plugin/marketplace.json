@@ -1,0 +1,14 @@
+{
+  "name": "ueda",
+  "owner": {
+    "name": "Itsuki-Ueda"
+  },
+  "description": "Itsuki-Ueda 個人の CC / Codex 共通スキル・エージェント定義・グローバルルールを配布する marketplace。",
+  "plugins": [
+    {
+      "name": "skill-library",
+      "source": "./",
+      "description": "CC / Codex 共通のスキル・サブエージェント定義・スラッシュコマンド・グローバルルールをまとめて配布する Plugin。"
+    }
+  ]
+}

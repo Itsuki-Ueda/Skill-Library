@@ -1,0 +1,10 @@
+{
+  "name": "skill-library",
+  "description": "Itsuki-Ueda の CC / Codex 共通スキル・エージェント定義・グローバルルール一式。クラウド環境で ~/.agents 相当を再現するための Plugin 包装（ローカルは Junction で直接読むため導入不要）。",
+  "author": {
+    "name": "Itsuki-Ueda"
+  },
+  "homepage": "https://github.com/Itsuki-Ueda/Skill-Library",
+  "repository": "https://github.com/Itsuki-Ueda/Skill-Library",
+  "keywords": ["skills", "agents", "global-rules", "codex", "claude-code"]
+}

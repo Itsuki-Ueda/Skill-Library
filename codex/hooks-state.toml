@@ -1,0 +1,14 @@
+# Ponytail（ponytail@ponytail）の Codex hook 信頼エントリ。
+# 出所: ローカルで `codex` → `/hooks` から人間が信頼した結果の複製（~/.codex/config.toml、2026-09-05）。
+# ハッシュは hook 定義内容のみから計算されパス非依存（cloud/README.md 5(c)）。
+# hooks/bootstrap.sh がクラウドの ~/.codex/config.toml に未登録なら丸ごと追記する。
+# Ponytail が hook 定義を変えた場合は値が変わる（Codex 上で「Modified」表示）→ ローカルで再信頼し、この 3 件を差し替える。
+
+[hooks.state."ponytail@ponytail:hooks/claude-codex-hooks.json:session_start:0:0"]
+trusted_hash = "sha256:5f81d38f47448a1581c08ec877e044d9e04dd6f814dce3f2671f7a8edadd719b"
+
+[hooks.state."ponytail@ponytail:hooks/claude-codex-hooks.json:user_prompt_submit:0:0"]
+trusted_hash = "sha256:6a6f42bc3b58d6262db38bfd74d7f340fcca2b09cdb134aad365063f0bfefca4"
+
+[hooks.state."ponytail@ponytail:hooks/claude-codex-hooks.json:subagent_start:0:0"]
+trusted_hash = "sha256:1423b56c1322f96c8f74c51c1e7ae9a047b904c1fa43ee9165d462fd7a6e70ef"

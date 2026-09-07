@@ -1,0 +1,4 @@
+interface:
+  display_name: "自動開発"
+  short_description: "Codex司令塔の自動開発ループ"
+  default_prompt: "$autodev を使って、このタスクを計画、実装、二重レビュー、検証、PR対応まで進めてください。"

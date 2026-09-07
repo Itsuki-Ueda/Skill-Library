@@ -1,0 +1,4 @@
+interface:
+  display_name: "調査担当"
+  short_description: "file-line根拠付き読み取り調査"
+  default_prompt: "$researcher を使って、このコードベース上の疑問をfile:line根拠と検索パターン付きで調査してください。"

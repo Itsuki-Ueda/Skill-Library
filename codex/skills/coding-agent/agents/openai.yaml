@@ -1,0 +1,4 @@
+interface:
+  display_name: "実装担当"
+  short_description: "範囲限定の実装ワーカー規律"
+  default_prompt: "$coding-agent を使って、この仕様を指定範囲内で実装し、検証結果を報告してください。"

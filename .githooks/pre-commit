@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Codex は Plugin キャッシュを <version> ディレクトリに持つため、version を据え置くと
+# 内容を更新してもキャッシュの古い版が使われ続ける（openai/codex#21138）。
+# そこでコミットのたびに .codex-plugin/plugin.json の version を機械的に進める。
+#
+# 形式: 1.<YYYYMMDD(UTC)>.<UTC 0時からの経過秒>
+# CC 側は git source の commit SHA が version になるのでこの処理は不要。
+set -euo pipefail
+
+# 非公開情報の混入検査（public repo）。ヒットしたらコミットを止める。正本: skill-ops「公開範囲」
+bash skills/skill-ops/scripts/publish-guard.sh --staged || exit 1
+
+MANIFEST=".codex-plugin/plugin.json"
+[ -f "$MANIFEST" ] || exit 0
+
+DATE=$(date -u +%Y%m%d)
+# 10# を付けて 10 進固定にする（"08" 等が 8 進として解釈されるのを防ぐ）
+SECS=$(( 10#$(date -u +%H) * 3600 + 10#$(date -u +%M) * 60 + 10#$(date -u +%S) ))
+VERSION="1.${DATE}.${SECS}"
+
+if command -v jq >/dev/null 2>&1; then
+  tmp=$(mktemp)
+  jq --arg v "$VERSION" '.version = $v' "$MANIFEST" > "$tmp"
+  mv "$tmp" "$MANIFEST"
+else
+  sed -i -E "s|(\"version\"[[:space:]]*:[[:space:]]*\")[^\"]*(\")|\1${VERSION}\2|" "$MANIFEST"
+fi
+
+git add "$MANIFEST"
+echo "[pre-commit] .codex-plugin/plugin.json version -> ${VERSION}"
