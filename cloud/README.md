@@ -261,3 +261,6 @@ bash ~/.agents/skills/skill-ops/scripts/publish.sh "<type>: <変更内容>"
   一方、同じ画面から登録したアカウント**スキル**（`git-ops`）は 2 回とも届いた。
 - **2026-09-07 / Setup script 経由の Ponytail（public repo）は仕事用リポジトリのセッションでも動作**
   （`PONYTAIL MODE ACTIVE` が SessionStart で出力、`ponytail:` スキルが一覧に出た）。public なら Setup script で導入できる根拠。
+- **2026-09-07 / public 化（履歴を 1 commit `d80f166` に squash）→ Setup script 貼り直し → 仕事用リポジトリのクラウドセッションで `selfcheck.sh` 全項目 OK。**
+  Plugin 版 `d80f166477c3`、`~/.agents` は Plugin キャッシュへの symlink、スキル 15 件、Codex 側 7 件、Ponytail 常時モード。
+  唯一の NG は Codex device-auth（人間のブラウザ承認が毎環境で必要。仕様どおり）。本方式の成立を確認。
