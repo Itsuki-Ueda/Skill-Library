@@ -22,12 +22,13 @@ CC × Codex 共通で運用しているスキル/エージェント/グローバ
 | 種別 | 正本の場所（リポジトリ内） | ツール側 |
 |---|---|---|
 | 共通ルール | `AGENTS.md` | CC: `~/.claude/CLAUDE.md` から `@import` / Codex: `~/.codex/AGENTS.md` の参照指示 |
-| 汎用スキル（git-ops, agent-team, handoff, autodev, agmsg, claude-code-subscription, skill-ops 等） | `skills/<name>/` | CC: `~/.claude/skills/<name>` Junction / Codex: `~/.agents/skills/` をネイティブ読取 |
+| 汎用スキル（git-ops, agent-team, handoff, autodev, agmsg, claude-code-subscription, skill-ops 等） | `skills/<name>/` | CC: `~/.claude/skills/<name>` Junction（agent-teamは下記CCラッパー経由） / Codex: `~/.agents/skills/` をネイティブ読取 |
 | 役割規律（team-worker, team-researcher, team-code-reviewer, team-plan-reviewer, team-plan-probe） | `skills/team-*/` | CC: `agents/*.md` ラッパー / Codex: `codex/agents/*.toml` ラッパー + `codex/skills/*` ラッパー |
 | CC サブエージェント定義 | `agents/*.md` | `~/.claude/agents` ディレクトリ自体が Junction |
 | CC スラッシュコマンド | `commands/*.md` | `~/.claude/commands` ディレクトリ自体が Junction |
 | CC 固有ルール | `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` は `@import` 2 行だけ |
 | Codex カスタム Agent 定義 | `codex/agents/*.toml` | `~/.codex/agents` ディレクトリ自体が Junction |
+| CC 用スキルラッパー | `claude/skills/<name>/` | agent-team: `~/.claude/skills/agent-team` をこのラッパーへ個別Junction。descriptionにトリガーを持たせ、共通本体を参照 |
 | Codex 用スキルラッパー | `codex/skills/<name>/` | `~/.codex/skills/<name>` を**個別に** Junction（`.system/` は Codex 管理なので触らない） |
 | Codex 固有ルール | `codex/AGENTS.md` | `~/.codex/AGENTS.md` は参照指示だけの短いファイル |
 | 共通ドキュメント（codex-protocol, test-policy） | `docs/` | `~/.claude/docs` ディレクトリ自体が Junction |
@@ -50,7 +51,7 @@ CC × Codex 共通で運用しているスキル/エージェント/グローバ
    ```powershell
    (Get-Item "$env:USERPROFILE\.claude\skills\<X>").Attributes -band [IO.FileAttributes]::ReparsePoint
    ```
-   → 非ゼロなら Junction。**実体は `~/.agents/skills/<X>` にある**。編集はそちらへ。
+   → 非ゼロならJunction。Targetを確認し、その正本を編集する。汎用は `~/.agents/skills/<X>`、agent-teamのCC側は `~/.agents/claude/skills/agent-team`、Codex側は `~/.agents/codex/skills/agent-team`。
 2. **ラッパー判定**: ファイル冒頭を読み「正本を読め」「行動規律の正本」等の参照指示があればラッパー。
    → 本文は正本ファイル（`~/.agents/skills/team-*/SKILL.md` 等）にある。編集はそちらへ。
 3. **実体判定**: 上記どちらでもなければ CC/Codex 専用の実体。そのまま編集してよい。
@@ -271,7 +272,7 @@ CC 側は git source の commit SHA が version になるのでこの処理は�
    ```powershell
    New-Item -ItemType Junction -Path "$env:USERPROFILE\.claude\skills\<name>" -Target "$env:USERPROFILE\.agents\skills\<name>"
    ```
-   （管理者権限不要）
+   （管理者権限不要。ハーネス用ラッパーがあるagent-teamは対応する `~/.agents/claude/skills/agent-team` をTargetにする。共通本体も直接ロード時にラッパーを選ぶのでPlugin経路で欠落しない）
 3. Codex は `~/.agents/skills/` をネイティブ読取するため Junction 不要。
 4. `~/.claude/skills/<name>` / `~/.codex/skills/<name>` に**実体を直接作らない**。
    過去に発生した「知らぬ間に .agents と .claude の 2 か所に別内容ができる」問題の再発防止。

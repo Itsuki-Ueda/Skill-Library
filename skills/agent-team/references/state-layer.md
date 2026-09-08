@@ -16,16 +16,16 @@
 | 長期記憶（全員向け） | リポジトリ `AGENTS.md` | コードを壊さないための規約と人間の決定・好み。全セッションが読む。**上限200行** |
 | 履歴 | git履歴 + `missions/closed/` + `.agents/queue/` | 無制限。想起はresearcherに掘らせる |
 
-- セッションが起動時に読むのは STATE.md → 対象ミッション → MEMORY.md **だけ**
-  （AGENTS.md は CLAUDE.md 経由で自動的に読まれる）。`closed/`・`queue/`・INBOX.md は起動時に読まない。
+- 本流・resumeが起動時に読む状態は STATE.md → 対象ミッション → MEMORY.md **だけ**
+  （プロジェクトの入口ルールもハーネスの方式で読む）。`closed/`・`queue/`・INBOX.md は通常の起動時に読まない。statusは現状報告に必要なSTATE/BACKLOG/queueを読み取り専用で調べる。
 - 起動時に読むファイルは**すべて上限を持つ**。上限があるから起動コストが一定に保たれる。
   上限は `memory-ops/scripts/check-size.sh` で測る（SessionStart hook でも毎回表示される）。
-- 過去の判断が必要になったら、コンテキストに載せず researcher（haiku）に `missions/closed/` と `git log` をgrepさせて要点だけ回収する。
+- 過去の判断が必要になったら、コンテキストに載せず ラッパーで解決したresearch担当に `missions/closed/` と `git log` をgrepさせて要点だけ回収する。
 
 ## 書き込み権
 
-- STATE.md・ミッションファイル・INBOX.md・MEMORY.md・BACKLOG.md に書けるのは**Orchestratorだけ**。
-- worker・サブエージェントの成果物は `queue/`（reports/reviews/research）へ。
+- STATE.md・INBOX.md・MEMORY.md・BACKLOG.md に書けるのは**Orchestratorだけ**。ミッション記帳の委任は次項のexecutor例外に限る。
+- worker・サブエージェントの成果物は親が `queue/`（reports/reviews/research）へ保存する。明示委任したexecutorだけはミッション・queueへの記帳可。STATE縮約は親だけ。
   契約のDo not modifyにも状態ファイルを必ず入れる。
 
 ## STATE.md の構造
@@ -65,10 +65,10 @@
 
 ## 計測のタイミング（agent-team 側の義務）
 
-`check-size.sh` を次の全てで実行し、超過があれば**作業に入る前に** memory-ops を実施する
+`check-size.sh` を次の全てで実行し、超過があればmemory-opsを実施する（本流・resumeは着手前、[7]は終了時。statusは例外）
 （提案ではなく実施。超過が軽微〔閾値+10%未満〕なら同セッションの [7] まで先送りしてよい）:
 
-- `/agent-team status`
+- `/agent-team status` は計測・報告のみ（本節の整理義務の例外）。書込・commitをしない。
 - `/agent-team resume`
 - ミッションフロー [0] 前提確認
 - ミッションフロー [7] 縮約後

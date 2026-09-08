@@ -1,7 +1,7 @@
 # M-XXX: <title>
 
 Status: intake | planning | executing | integrating | done
-Branch: team/M-XXX
+Branch: {git-opsに従うブランチ名}
 Active session: <引き継ぎ時に記載・終了時にクリア>
 
 ## Goal
@@ -26,6 +26,13 @@ Active session: <引き継ぎ時に記載・終了時にクリア>
 | --- | --- | --- | --- | --- | --- |
 
 Status: contracted → dispatched → fixing(rN) → review_ok → committed
+
+## レビュー・完了証拠
+
+- レビュー記録: {queue/reviewsのパス。対象版・範囲・担当/ベンダー・判定を含む}
+- 統合確認: {接続・共有資源・順序依存の確認記録。不要なら理由}
+- 実行記録: {対象HEAD・コマンド・終了コード・必要な出力}
+- 未達/例外受入: {未達内容・Human Decisionsの明示承認。なければなし}
 
 ## 並列計画
 

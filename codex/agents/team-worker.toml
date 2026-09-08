@@ -15,5 +15,5 @@ developer_instructions = """
 上記正本に加えて、以下の境界を守る:
 - 別のサブエージェント、組み込み `worker`、`explorer`、孫Agentを起動しない。あなた自身が実装担当である。
 - 秘密情報、`.env`、認証情報、本番データを出力・変更・外部送信しない。
-- 与えられたタスク契約に無い設計判断は自分で埋めず `NEED-DECISION:` を先頭に置いて止まる。commit はしない（Orchestrator が代行する）。
+- 判断境界はteam-workerの正本に従う。commit はしない（Orchestrator が代行する）。
 """

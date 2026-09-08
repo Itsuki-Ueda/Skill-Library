@@ -1,63 +1,48 @@
 ---
 name: agent-team
-description: "Codex を Orchestrator として agent-team（Claude×Codex チーム開発）を回すためのハーネス固有設定。正本は ~/.agents/skills/agent-team/SKILL.md。「/agent-team」「チームで開発」「ミッション」で正本と併せて必ず読む。"
+description: Codexでagent-teamを実行するためのラッパー。「/agent-team」「チームで開発」「分解して並列で」「ミッション」「Codex部隊に」「複数モジュールにまたがる開発」、init/status/resumeで共通本体と併読する。
 ---
 
-# agent-team — Codex ハーネス固有設定
+# agent-team — Codex実行経路
 
-**正本 `~/.agents/skills/agent-team/SKILL.md` と `references/dispatch.md` `references/defaults.yaml` を最初に読み、全工程に従うこと。**
-このファイルは Codex 固有の読み替えだけを定義する。正本の本文は複製しない。
+共通本体 `~/.agents/skills/agent-team/SKILL.md` を読む。共通本体が直接ロードされた場合も本書を使う。
+実行時に必要なdispatch/express/state-layerだけを読む。native起動にCLIプロトコル全量は不要。
 
-ルーティングは `defaults.yaml` の **`codex_routing`** を `routing` の代わりに使う。
+## 設定・起動
+- `~/.agents/skills/agent-team/references/defaults.yaml` のcodex_routingを、プロジェクトteam.yamlのcodex_routingで項目単位に上書きする。limitsも同様。未知キーは無視する。
+- `agent:` は名前指定のcustom agentをspawnする。model/effortは `~/.agents/codex/agents/` のtomlが正本。yamlのmodel/effortで上書きしない。
+- `cc:` はCCゲートウェイへ解決済みyamlのmodel/effortを渡す。別経路のroutingへ暗黙フォールバックしない。経路未定義は親へ返す。
+- 事前定義を使い、毎dispatchの設定照合・人間確認は行わない。設定変更時に対応経路と定義を確認する。黙ったagent代替は禁止（`~/.agents/codex/AGENTS.md`）。
+- nativeは同じagentへ追加入力して継続する。CCゲートウェイは新規呼び出しなので契約・前回記録・前回版からの差分を同梱する。
+- 入れ子の `codex exec` は使わない。executor/cc-choreへ委譲せず、親が進行管理・完了ゲート・commitを担当する。
 
-## 読み替え表（正本の記述 → Codex での実行）
-
-| 正本の記述 | Codex での実行 |
+## 担当
+| 対象 | codex_routingの担当 |
 | --- | --- |
-| Agent ツールで coding-agent / reviewer / researcher / plan-probe を起動 | 対応する custom agent を**名前指定で spawn**（`codex_routing` の `agent:`）。組み込み `worker` / `explorer` / `default` へ黙って置換しない（`~/.agents/codex/AGENTS.md`「Named subagent routing」） |
-| codex exec 実装形(3d)・文書レビュー形(3a)・resume 形(3c) | 使わない。custom agent spawn ＋同一エージェントへの追加入力で置き換える。**入れ子 `codex exec` は禁止**（sandbox はネットワーク遮断。codex-protocol.md §13） |
-| cc-worker / hard-worker（coding-agent） | CC ゲートウェイの `coding-agent` モード（下記）。プロンプト冒頭に「`team-worker` スキル（正本 `~/.agents/skills/team-worker/SKILL.md`）を読み従え」＋契約全文を置く |
-| reviewer サブエージェント / codex-review | Codex(team-worker) 実装分 → CC ゲートウェイ `reviewer` モード（正本 `~/.agents/skills/team-code-reviewer/SKILL.md` を名指し）。CC(coding-agent) 実装分 → custom agent `reviewer` |
-| 分解文書のプランレビュー | CC ゲートウェイ `reviewer` モード（正本 `~/.agents/skills/team-plan-reviewer/SKILL.md` を名指し）。並走する plan-probe は custom agent `plan-probe` |
-| SendMessage で差し戻し | custom agent → **同一エージェントへ追加入力**（send_input 等、ハーネスが提供する継続手段）。CC ゲートウェイ → **新規呼び出し**（契約＋前回指摘＋現在の diff 範囲を同梱。文脈は引き継がれない前提で書く） |
-| AskUserQuestion | `NEED-DECISION: <判断が必要な内容と選択肢>` を先頭に置いて停止 |
-| [3.5] executor 委譲 | 発動しない。常に**直接実行モード**（[4]〜[6] を Orchestrator 自身が実行） |
-| cc-chore（完了ゲート実行） | Orchestrator 自身が実行。各コマンドの **exit code をミッションファイルに記録**する |
-| バックグラウンド起動と完了通知 | custom agent の並列 spawn ＋ wait。Allowed paths 非交差の契約だけ並列（正本 `references/dispatch.md` §並列実行の規律をそのまま適用） |
-| task commit | Orchestrator(Codex) が `git add <そのタスクの Allowed paths>` → `git commit`。sandbox の `.git` 保護で拒否されたら**承認要求（approval on-request）で実行**。`--dangerously-bypass-approvals-and-sandbox` 等の禁止フラグは使わない |
-| Windows 実行の注意（PowerShell） | Codex のシェルは PowerShell。正本の注意書きをそのまま適用 |
+| 通常/express実装 | worker / express |
+| 難度・環境レーン | hard-worker / cc-worker |
+| 調査 | research |
+| 親の計画 | plan-review（team-plan-reviewer）＋初回plan-probe |
+| native worker実装 | review（team-code-reviewer） |
+| CCゲートウェイ実装 | codex-review（team-code-reviewer） |
+| expressレビュー | 親のdiff直読だけ。同一ベンダーでも正規の合格条件 |
 
-## CC ゲートウェイの呼び方
+役割スキルの正本パスと契約/対象版を明記する。非交差タスクだけ並列spawnし、完了通知・waitで回収する。
+レビューの版・再確認・証拠は `~/.agents/skills/agent-team/references/dispatch.md` に従う。
 
-手順・認証境界・禁止事項の正本は `~/.agents/codex/skills/autodev/references/claude-code-bridge.md`。ここには差分だけ置く。
+## CCゲートウェイ・権限
+- 使用するときだけ `~/.agents/codex/skills/autodev/references/claude-code-bridge.md` を読む。認証・起動コマンド・禁止事項はそこが正本。
+- UTF-8（BOMなし）プロンプト作成、ゲートウェイ単独実行、一時ファイル削除を別tool callにする。
+- ゲートウェイへ直接実行以外の認証方式で迂回しない。秘密情報・不要な個人情報を送らない。
+- Gitの権限制約は `~/.agents/codex/skills/git-ops/SKILL.md` に従う。許可された承認付き実行を使い、拒否を迂回しない。
+- Windowsのgit `ref:path` はPowerShellで全体を引用する。
 
-1. 別の tool call でプロンプトを UTF-8（BOM なし）の一時ファイルへ書く。
-2. ゲートウェイだけを単独の tool call で実行する（他コマンドを混ぜない）。
-3. 別の tool call で一時ファイルを削除する。
+## 利用不可
+生のエラーを確認してから判断する。hard-worker/cc-workerを量産workerへ黙って落とさず、BLOCKEDとして親から報告する。
+review/plan-reviewのCC経路が利用不可ならnative reviewerによる補助レビューは可能だが、別ベンダー未達をBlockersへ残し、共通dispatchの回復待ち/例外受入を適用する。
+native researchが利用不可なら親が権限内の読み取り調査を引き取る。未実行を調査済みとしない。
 
-コマンド（1 行。`{}` が置換箇所）:
-
-```
-C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\Users\iueda\.codex\bin\cc-subscription-gateway.ps1 coding-agent "{プロンプトファイルの絶対パス}" -Model opus -Effort xhigh
-```
-
-レビューは第1引数と effort だけ変える: `reviewer "{プロンプトファイルの絶対パス}" -Model opus -Effort high`
-
-### 利用不可のときの縮退
-
-利用不可の判定は bridge 文書の「利用不可判定」に従う（生のエラーを確認できた場合だけ）。縮退先:
-
-- **hard-worker / cc-worker 行きのタスク**: `team-worker` に落とさず **`BLOCKED:` で停止**する（複雑タスクを量産モデルへ黙って落とさない）。
-- **レビュー**: custom agent `reviewer` へ縮退し、**「クロスベンダーレビュー未達」を最終報告に明記**する。
-
-## 状態レイヤー
-
-正本どおり（`.agents/` への書き込みは Orchestrator のみ、worker の成果物は `queue/` へ）。
-ミッションファイルの `Active session` には **Codex のセッション ID** を書く。
-
-## 最終報告（Codex 固有追加項目）
-
-- 使用 custom agent の起動数: team-worker / researcher / reviewer / plan-probe
-- CC ゲートウェイ結果: 成功 / 利用不可（生エラー） / 未使用
-- クロスベンダーレビュー達成の有無
-- 完了ゲート（`verify.post_change` / `verify.smoke`）の exit code
+## 記録・報告
+Active sessionには実際のセッションIDを記す。成果物保存は親が行う。
+報告は使用した担当、ゲートウェイ結果、レビュー達成/例外、完了ゲートの実行証拠を簡潔に示す。
+expressにはクロスベンダー未達警告を出さない。

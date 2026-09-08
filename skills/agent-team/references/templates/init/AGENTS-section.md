@@ -1,6 +1,6 @@
 # Team Worker Rules
 
-このリポジトリは /agent-team（Claudeオーケストレーター）の管理下で開発されることがある。
+このリポジトリは /agent-team（オーケストレーター）の管理下で開発されることがある。
 
 - タスク契約（T-xxx.md）を渡されたワーカーは、契約プロンプトで名指しされたスキル
   （`team-worker` / `team-code-reviewer` / `team-plan-reviewer` / `team-researcher`）を

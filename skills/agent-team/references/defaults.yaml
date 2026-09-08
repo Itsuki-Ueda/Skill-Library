@@ -1,5 +1,6 @@
 # /agent-team のグローバル既定値（正本）。全プロジェクト共通。
-# ここを直せば全プロジェクトに1発反映される。
+# CLIのモデル値はyaml、native agentのモデル値はtomlが正本。経路別の値の差は許容する。
+# 既存の値を維持。設定変更時だけ参照経路を確認し、毎dispatchの照合・人間確認を追加しない。
 # プロジェクト側 .agents/config/team.yaml に同じキーがあればそちらが優先（差分上書き）。
 # codex系で model/effort が未定義に落ちた場合の最終フォールバックは codex-protocol.md §1。
 
@@ -26,13 +27,13 @@ routing:
   executor:    { agent: general-purpose, model: opus, effort: xhigh }
   # 雑務系（ノイジーな中間出力を吸収してOrchestratorのコンテキストを守る）
   # 原則は routing.worker（Codex）へ委譲。Codex環境起因で不可の雑務のみ cc-chore へ
-  # （git書込操作 / workspace外・ネットワーク / 実行証拠が要る検証=完了ゲート←プロトコル§10）
+  # （既定workerの実行権限・ツールで不可の場合。検証証拠の基準はdispatchでベンダー共通）
   cc-chore:    { agent: general-purpose, model: haiku, effort: xhigh }
 
 # Orchestrator が Codex のときのルーティング。運用手順の正本は ~/.agents/codex/skills/agent-team/SKILL.md。
 # `agent:` = Codex custom agent 名（~/.agents/codex/agents/<name>.toml。model/effort は toml が正本）
 # `cc:`    = Claude Code をサブスク用ゲートウェイ経由で呼ぶ（--agent <cc> --model <model> --effort <effort>）
-# routing と同じキー名。未定義キーは routing → codex-protocol.md §1 の順にフォールバック。
+# 経路未定義は親へ返す。native実行をroutingのCLIへ暗黙フォールバックしない。
 codex_routing:
   express:      { agent: team-worker }                              # luna / xhigh
   worker:       { agent: team-worker, parallel_max: 5 }
