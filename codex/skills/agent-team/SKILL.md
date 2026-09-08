@@ -25,7 +25,7 @@ description: Codexでagent-teamを実行するためのラッパー。「/agent-
 | 親の計画 | plan-review（team-plan-reviewer）＋初回plan-probe |
 | native worker実装 | review（team-code-reviewer） |
 | CCゲートウェイ実装 | codex-review（team-code-reviewer） |
-| expressレビュー | 親のdiff直読だけ。同一ベンダーでも正規の合格条件 |
+| expressレビュー | `~/.agents/skills/agent-team/references/express.md` に従う |
 
 役割スキルの正本パスと契約/対象版を明記する。非交差タスクだけ並列spawnし、完了通知・waitで回収する。
 レビューの版・再確認・証拠は `~/.agents/skills/agent-team/references/dispatch.md` に従う。
@@ -45,4 +45,3 @@ native researchが利用不可なら親が権限内の読み取り調査を引�
 ## 記録・報告
 Active sessionには実際のセッションIDを記す。成果物保存は親が行う。
 報告は使用した担当、ゲートウェイ結果、レビュー達成/例外、完了ゲートの実行証拠を簡潔に示す。
-expressにはクロスベンダー未達警告を出さない。

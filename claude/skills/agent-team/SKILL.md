@@ -24,7 +24,7 @@ agent-team中の分担は本書と共通本体を適用し、通常セッショ�
 | 親の計画 | routing.codex-review（team-plan-reviewer）＋初回routing.plan-probe |
 | Codex実装 | routing.codex-review（独立ゲート）とrouting.review（別ベンダーの独立ゲート） |
 | coding-agent実装 | routing.codex-review（team-code-reviewer） |
-| express | 親のdiff直読だけ。独立ゲートは起動しない |
+| express | `~/.agents/skills/agent-team/references/express.md` に従う |
 
 両ゲートの初回は互いの結果を見せず並行実行し、指摘をまとめる。executor自身の品質確認は補助であり独立ゲートの代替にしない。
 レビューの版・再確認・縮退・証拠は `~/.agents/skills/agent-team/references/dispatch.md` に従う。
