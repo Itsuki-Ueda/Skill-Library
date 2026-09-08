@@ -22,22 +22,23 @@ agent-team中の分担は本書と共通本体を適用し、通常セッショ�
 | 対象 | 担当 |
 | --- | --- |
 | 親の計画 | routing.codex-review（team-plan-reviewer）＋初回routing.plan-probe |
-| Codex実装 | routing.codex-review（独立ゲート）とrouting.review（別ベンダーの独立ゲート） |
+| Codex実装（executor運用） | routing.codex-review＋executorの直読 |
+| Codex実装（親が直接進行管理） | routing.codex-review＋routing.review |
 | coding-agent実装 | routing.codex-review（team-code-reviewer） |
 | express | `~/.agents/skills/agent-team/references/express.md` に従う |
 
-両ゲートの初回は互いの結果を見せず並行実行し、指摘をまとめる。executor自身の品質確認は補助であり独立ゲートの代替にしない。
+Fable親のexecutor運用では、独立性はCodexレビュー、別ベンダーの視点はexecutor（既定Opus）の直読が担う。executorは孫Agentを起動できないため、別reviewerの追加起動は要求しない。両ゲートとも合格が必要。初回は互いの結果を見ず並行して確認し、指摘をまとめる。
 レビューの版・再確認・縮退・証拠は `~/.agents/skills/agent-team/references/dispatch.md` に従う。
 
 ## executor（節約運用）
 - 親がFableなら[3]の承認後にrouting.executorへ[4]〜[6]を委任する。それ以外・極小1タスク・起動不可なら親が進行管理する。
 - 渡すものは共通本体・dispatch・本書のパス、ミッション、分解骨子、契約清書の指示、停止条件。
 - executorはミッションとqueueへ記帳できる。STATE縮約は親だけ。
-- executorはCLI worker・CLI reviewerを起動できるが、Agentツールによる孫起動はしない。coding-agentと独立reviewerのAgent起動は親へ依頼する。親は待機中も依頼を回収して起動・結果返却する。
+- executorはCLI worker・CLI reviewerを起動できるが、Agentツールによる孫起動はしない。coding-agentが必要なタスクだけ親へ起動を依頼する。親は待機中も依頼を回収して起動・結果返却する。
 - 設計変更、同一タスク2回切替、usage limit、人間判断、破壊的Git操作の判断は親へ返す。同じexecutorへ追加指示して継続する。
 
 ## 検証・縮退
-- 完了ゲートは親/executor、またはrouting.cc-choreへ委譲する。元の実行記録を親が観測できない場合は未検証とし、親側で再実行する。
+- 完了ゲートはexecutor運用ではexecutor自身が実行し、直接進行管理では親が実行するかrouting.cc-choreへ委譲する。元の実行記録を親が観測できない場合は未検証とし、親側で再実行する。
 - CLI restricted sandboxで不可の環境準備・Git書込・ブラウザ等は、実行可能な親側経路が担当する。ベンダー名だけで可否を判断しない。
 - 調査のCLI usage limitは再試行せずrouting.cc-researchへ（enumerate/semanticの定義を使う）。人間がCC調査を指定した場合も同じ経路。
 - 実装のusage limitは親へ戻して環境レーン等への再割当を判断する。レビューの利用不可は共通の縮退規則で扱い、未達を通常doneにしない。
