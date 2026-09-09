@@ -1,7 +1,7 @@
 name = "reviewer"
 description = "計画、未コミット差分、commit、branch、PRを読み取り専用で独立審査し、VERDICTとP0-P3の根拠付き指摘を返すカスタムAgent。"
-model = "gpt-5.6-sol"
-model_reasoning_effort = "high"
+model = "gpt-6-astra"
+model_reasoning_effort = "low"
 sandbox_mode = "read-only"
 nickname_candidates = ["Atlas", "Sentinel", "Verifier"]
 

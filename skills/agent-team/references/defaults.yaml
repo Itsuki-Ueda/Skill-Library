@@ -42,8 +42,8 @@ codex_routing:
   cc-worker:    { cc: coding-agent, model: opus, effort: xhigh }    # 環境制約レーンも同じ CC レーン
   research:     { agent: researcher, parallel_max: 6 }
   review:       { cc: reviewer, model: opus, effort: high }         # Codex 実装分のクロスベンダーレビュー
-  codex-review: { agent: reviewer }                                 # CC 実装分のレビュー(sol/high)
-  plan-review:  { cc: reviewer, model: opus, effort: high }         # 分解文書レビュー(team-plan-reviewer 名指し)
+  codex-review: { agent: reviewer }                                 # CC 実装分のレビュー
+  plan-review:  { cc: reviewer, model: opus, effort: xhigh }         # 分解文書レビュー(team-plan-reviewer 名指し)
   plan-probe:   { agent: plan-probe }                               # luna / low
   # executor / cc-chore は Codex 時は使わない（直接実行モード。完了ゲートは Orchestrator 自身）
 
