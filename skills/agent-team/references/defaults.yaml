@@ -8,7 +8,7 @@ routing:
   # 実装系（原型記事のPareto配分。slug変更時はここだけ直す）
   express:     { cli: codex, model: gpt-5.6-luna, effort: xhigh }
   worker:      { cli: codex, model: gpt-5.6-luna, effort: max, parallel_max: 5 }
-  hard-worker: { cli: codex, model: gpt-5.6-sol,  effort: medium }
+  hard-worker: { cli: codex, model: gpt-6-astra,  effort: low }
   cc-worker:   { agent: coding-agent }               # モデルはエージェント定義に従う(opus)
   # 調査・レビュー系
   # 調査の既定はCodex（team-researcher名指し）。CCへ切り替えるのは
@@ -20,7 +20,7 @@ routing:
   plan-probe:       { agent: plan-probe }                             # CC Orchestrator用(haiku)
   # Codexレビュアーの正本。gate1(Codex実装分の独立レビュー)とcc-worker実装分のレビューの両方で使う。
   # effort=low明示によりプロトコル§1の段階制(high→medium)は無効化され全ラウンドlow固定。
-  codex-review: { cli: codex, model: gpt-5.6-sol, effort: low }
+  codex-review: { cli: codex, model: gpt-6-astra, effort: low }
 
   # 執行系（[4]〜[6]の進行管理を担うexecutorサブエージェント。Fable温存の要）
   # **Orchestratorが Fable のときだけ使う**（Opus等が指揮する場合は委譲せず直接実行）
@@ -37,7 +37,8 @@ routing:
 codex_routing:
   express:      { agent: team-worker }                              # luna / xhigh
   worker:       { agent: team-worker, parallel_max: 5 }
-  hard-worker:  { cc: coding-agent, model: opus, effort: xhigh }
+  hard-worker:  { agent: team-hardworker, parallel_max: 5 }
+  #hard-worker:  { cc: coding-agent, model: opus, effort: xhigh }
   cc-worker:    { cc: coding-agent, model: opus, effort: xhigh }    # 環境制約レーンも同じ CC レーン
   research:     { agent: researcher, parallel_max: 6 }
   review:       { cc: reviewer, model: opus, effort: high }         # Codex 実装分のクロスベンダーレビュー
