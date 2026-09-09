@@ -1,6 +1,6 @@
 ---
 name: agent-team
-description: Codexでagent-teamを実行するためのラッパー。「/agent-team」「チームで開発」「分解して並列で」「ミッション」「Codex部隊に」「複数モジュールにまたがる開発」、init/status/resumeで共通本体と併読する。
+description: 機能追加・不具合修正・リファクタリングを、規模に応じた実装・レビュー・検証で進める開発スキル。調査や設計判断を伴う開発依頼、および進行中の開発の追加修正・再開に適用する。誤字修正などの軽微な変更は除く。
 ---
 
 # agent-team — Codex実行経路
