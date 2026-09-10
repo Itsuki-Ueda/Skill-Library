@@ -31,7 +31,7 @@ Fable親のexecutor運用では、独立性はCodexレビュー、別ベンダ�
 レビューの版・再確認・縮退・証拠は `~/.agents/skills/agent-team/references/dispatch.md` に従う。
 
 ## executor（節約運用）
-- 親がFableなら[3]の承認後にrouting.executorへ[4]〜[6]を委任する。それ以外・極小1タスク・起動不可なら親が進行管理する。
+- 親がFableなら[3]の承認後にrouting.executorへ[4]〜[6]を委任する。例外はexecutorを起動できないときだけ。規模による例外は設けない（小さいものはIntakeでexpressに振られており、本節の対象外。「1タスクだから」で親が直接進行管理しない）。親がFable以外なら親が進行管理する。
 - 渡すものは共通本体・dispatch・本書のパス、ミッション、分解骨子、契約清書の指示、停止条件。
 - executorはミッションとqueueへ記帳できる。STATE縮約は親だけ。
 - executorはCLI worker・CLI reviewerを起動できるが、Agentツールによる孫起動はしない。coding-agentが必要なタスクだけ親へ起動を依頼する。親は待機中も依頼を回収して起動・結果返却する。
