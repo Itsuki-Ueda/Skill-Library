@@ -2,7 +2,7 @@
 # Codex クラウドの Environment の Setup script に貼り付ける内容。
 #
 # 前提:
-# - Secret `CC_SUBSCRIPTION_TEST_TOKEN` は、人間が `claude setup-token` の出力を登録する。
+# - Secret `CC_SUBSCRIPTION_TOKEN` は、人間が `claude setup-token` の出力を登録する。
 # - エージェント段階で次の4ドメインを許可する（POST を含む）: api.anthropic.com /
 #   claude.ai / claude.com / platform.claude.com。Setup 段階はインターネット接続で
 #   GitHub/npm から取得する。
@@ -15,6 +15,7 @@
 # - Claude の単一リクエストと別タスク再利用は、キャッシュ無効の A/B 実測で確認済み。
 #   キャッシュされた認証ファイルが別タスクで継続すること自体はこの構成では検証しない。
 # - 失敗時は起動を続行せず fail-closed で停止する。
+# - トークンの期限は CLAUDE_TOKEN_ISSUED で管理。再発行時は Secret 更新＋この日付更新＋Setup 再実行。
 #
 # Secret は Setup 中にだけ読み、`~/.config/claude-subscription/oauth-token` (0600) に
 # 書いた後は環境変数を破棄する。認証ファイルの内容や CLI の出力にはトークンを出さない。
@@ -28,6 +29,9 @@ readonly REPO_BRANCH="main"
 readonly SKILL_LIBRARY_ROOT="/root/.local/share/skill-library"
 readonly AUTH_DIR="/root/.config/claude-subscription"
 readonly AUTH_FILE="${AUTH_DIR}/oauth-token"
+readonly CLAUDE_TOKEN_ISSUED="2026-09-12"   # `claude setup-token` を実行した日。再発行したら更新する
+readonly CLAUDE_TOKEN_TTL_DAYS=365          # setup-token の有効期間（Anthropic 公式）
+readonly CLAUDE_TOKEN_WARN_DAYS=30
 
 fail() {
   printf 'codex cloud setup: %s\n' "$*" >&2
@@ -42,14 +46,14 @@ require_command() {
 [ "${HOME:-}" = /root ] || fail 'Codex クラウドの HOME=/root 環境で実行してください'
 
 write_auth_file() {
-  : "${CC_SUBSCRIPTION_TEST_TOKEN:?Secret CC_SUBSCRIPTION_TEST_TOKEN を人間が登録してください}"
-  [ -n "$CC_SUBSCRIPTION_TEST_TOKEN" ] || fail 'Secret CC_SUBSCRIPTION_TEST_TOKEN が空です'
-  case "$CC_SUBSCRIPTION_TEST_TOKEN" in
+  : "${CC_SUBSCRIPTION_TOKEN:?Secret CC_SUBSCRIPTION_TOKEN を人間が登録してください}"
+  [ -n "$CC_SUBSCRIPTION_TOKEN" ] || fail 'Secret CC_SUBSCRIPTION_TOKEN が空です'
+  case "$CC_SUBSCRIPTION_TOKEN" in
     sk-ant-oat01-*) ;;
     *) fail '`claude setup-token` が表示した最終トークンを Secret に登録してください' ;;
   esac
-  case "$CC_SUBSCRIPTION_TEST_TOKEN" in
-    *[[:space:]]*) fail 'Secret CC_SUBSCRIPTION_TEST_TOKEN に空白が含まれています' ;;
+  case "$CC_SUBSCRIPTION_TOKEN" in
+    *[[:space:]]*) fail 'Secret CC_SUBSCRIPTION_TOKEN に空白が含まれています' ;;
   esac
 
   if [ -L "$AUTH_DIR" ]; then
@@ -68,10 +72,10 @@ write_auth_file() {
   tmp_file=$(mktemp "$AUTH_DIR/.oauth-token.XXXXXX")
   trap 'rm -f "$tmp_file"' RETURN
   chmod 600 "$tmp_file"
-  printf '%s' "$CC_SUBSCRIPTION_TEST_TOKEN" >"$tmp_file"
+  printf '%s' "$CC_SUBSCRIPTION_TOKEN" >"$tmp_file"
   mv -f "$tmp_file" "$AUTH_FILE"
   trap - RETURN
-  unset CC_SUBSCRIPTION_TEST_TOKEN
+  unset CC_SUBSCRIPTION_TOKEN
 }
 
 update_repository() {
@@ -153,6 +157,19 @@ check_auth_file() {
     || fail "認証ファイルの権限が 600 ではありません: $AUTH_FILE"
 }
 
+check_token_expiry() {
+  local expires_at now remaining_days
+  expires_at=$(date -d "$CLAUDE_TOKEN_ISSUED + $CLAUDE_TOKEN_TTL_DAYS days" +%s) || fail "CLAUDE_TOKEN_ISSUED の日付を解釈できません: $CLAUDE_TOKEN_ISSUED"
+  now=$(date +%s)
+  if [ "$now" -ge "$expires_at" ]; then
+    fail "Claude トークンの期限切れ（発行 $CLAUDE_TOKEN_ISSUED）。人間が claude setup-token で再発行し、Secret CC_SUBSCRIPTION_TOKEN を更新して CLAUDE_TOKEN_ISSUED を書き換えてください"
+  fi
+  remaining_days=$(( (expires_at - now) / 86400 ))
+  if [ "$remaining_days" -le "$CLAUDE_TOKEN_WARN_DAYS" ]; then
+    printf 'codex cloud setup: 警告: Claude トークンの期限まで残り %s 日（発行 %s）\n' "$remaining_days" "$CLAUDE_TOKEN_ISSUED" >&2
+  fi
+}
+
 case "${1:-setup}" in
   --maintenance)
     require_command git
@@ -160,6 +177,7 @@ case "${1:-setup}" in
     update_repository
     ensure_layout
     check_auth_file
+    check_token_expiry
     printf 'CODEX_CLOUD_MAINTENANCE_OK\n'
     ;;
   setup)
@@ -173,6 +191,7 @@ case "${1:-setup}" in
     require_command codex
     ensure_layout
     check_auth_file
+    check_token_expiry
     printf 'CODEX_CLOUD_SETUP_OK\n'
     ;;
   *)

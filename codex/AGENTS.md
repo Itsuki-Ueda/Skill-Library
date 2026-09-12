@@ -51,54 +51,12 @@ CodexからClaude Codeを呼ぶすべてのタスク・スキル・臨時作業�
 [確認 2026-09-12] 通常タスクと独立した次タスクで、Setup Secret → 0600ファイル → Claude子プロセスのOAuth認証による `OK` 応答を確認した（キャッシュ無効）。Linuxでは次の経路を上記Windows専用ゲートウェイの代わりに使う。Windowsの経路・規律は変更しない。`claude-code-subscription` スキルのWindows専用パスにも、このLinux限定の例外を適用する。
 
 - 環境のSetup scriptに `cloud/codex-setup.sh`、Maintenance scriptに `cloud/codex-maintenance.sh` の内容を貼る。
-- Secret `CC_SUBSCRIPTION_TEST_TOKEN` の値は**人間が登録する**。取得は人間の端末で `claude setup-token` を実行する。値を会話・コード・通常の環境変数設定へ貼らない。
-- 認証ファイルは `/root/.config/claude-subscription/oauth-token`。内容の表示・プロンプトへの挿入は禁止。次のPython処理の内部だけで読み、子プロセスへ渡す。
-- 以下は疎通確認用の実測済み呼び出し。任意のレビュー・実装、ツール有効化、長時間実行は未検証で、この例の成功をそのまま適用しない。
+- Secret `CC_SUBSCRIPTION_TOKEN` の値は**人間が登録する**。取得は人間の端末で `claude setup-token` を実行する。値を会話・コード・通常の環境変数設定へ貼らない。
+- 認証ファイルは `/root/.config/claude-subscription/oauth-token`。内容の表示・プロンプトへの挿入は禁止。`cc-subscription-call.py` の内部だけで読み、子プロセスへ渡す。
+- Claude 呼び出しは `cloud/cc-subscription-call.py` が唯一の経路。確認は `python3 ~/.agents/cloud/cc-subscription-call.py --check`。
+- レビュー・実装は、プロンプト本文を UTF-8 の一時ファイルへ書き、`python3 ~/.agents/cloud/cc-subscription-call.py <absolute-prompt-file>` を**別の shell tool call** で呼ぶ（Windows 節と同じ規律）。
+- `--check` は実測済み。プロンプトファイル経由のレビュー・実装呼び出しは 2026-09-12 時点で未検証。
 - APIキー、Console認証、`--bare`、別の接続先へのフォールバックは禁止。失敗時は終了コードと固定メッセージだけを報告し、認証情報を含み得る生の出力を表示しない。
-
-```bash
-python3 - <<'PY'
-import json, os, re, shutil, subprocess, tempfile
-from pathlib import Path
-
-try:
-    token_path = Path('/root/.config/claude-subscription/oauth-token')
-    if not token_path.is_file() or token_path.is_symlink():
-        raise ValueError('Invalid authentication file')
-    if token_path.stat().st_mode & 0o777 != 0o600:
-        raise ValueError('Invalid authentication file mode')
-    if token_path.parent.is_symlink() or token_path.parent.stat().st_mode & 0o777 != 0o700:
-        raise ValueError('Invalid authentication directory')
-    token = token_path.read_text()
-    if not token.startswith('sk-ant-oat01-') or re.search(r'\s', token):
-        raise ValueError('Invalid authentication token')
-    allowed = {'PATH', 'HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'NO_PROXY',
-               'http_proxy', 'https_proxy', 'all_proxy', 'no_proxy',
-               'SSL_CERT_FILE', 'SSL_CERT_DIR', 'NODE_EXTRA_CA_CERTS', 'LANG'}
-    with tempfile.TemporaryDirectory(dir='/root') as home:
-        env = {k: os.environ[k] for k in allowed if k in os.environ}
-        env.update(HOME=home, CLAUDE_CONFIG_DIR=home,
-                   CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC='1',
-                   ENABLE_CLAUDEAI_MCP_SERVERS='false',
-                   CLAUDE_CODE_OAUTH_TOKEN=token)
-        cli = shutil.which('claude')
-        if not cli:
-            raise ValueError('Claude CLI unavailable')
-        run = subprocess.run(
-            [cli, '-p', 'Reply with exactly OK', '--tools', '', '--max-turns', '1',
-             '--no-session-persistence', '--setting-sources', '',
-             '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}'],
-            cwd=home, env=env, stdin=subprocess.DEVNULL, capture_output=True,
-            text=True, timeout=90)
-    ok = run.returncode == 0 and run.stdout.strip() == 'OK'
-    print(json.dumps({'exit_code': run.returncode, 'ok_exact': ok}))
-    raise SystemExit(0 if ok else 1)
-except Exception:
-    print('CLAUDE_SUBSCRIPTION_CHECK_FAILED')
-    raise SystemExit(1)
-PY
-```
-
 - 同一タスク中に再利用する認証ファイルは呼び出しごとに削除せず、タスク終了時に削除する。キャッシュを有効にした場合、セットアップ時の認証ファイルが最大12時間のスナップショットに残り得る。タスク内での削除はキャッシュの失効操作ではない。
 - 認証を撤去するときはSecretを削除し、Setup / Maintenanceの認証設定を外して環境を保存する。Secret変更でキャッシュが無効になる。発行元トークンの失効とは別の操作である。
 - キャッシュ再開時の配置・認証ファイル確認はMaintenanceに任せる。認証ファイルが無い場合は人間がSecretを登録してセットアップを再実行する。12時間のキャッシュ保持と実際のレビュー・実装のE2Eは未実測。
