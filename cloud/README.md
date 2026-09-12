@@ -117,11 +117,19 @@ Codex クラウドの環境はリポジトリ単位で、Secret も環境単位�
    - `CODEX_CLOUD_SETUP_OK claude_linked=1` … Claude 連携あり
    - `CODEX_CLOUD_SETUP_OK claude_linked=0` … スキル配置のみ（Secret 未登録）
    - `codex cloud setup: ...` で止まる … メッセージのとおりに直して保存し、タスクを開き直す
-   同じタスクに次を貼ると動作確認になる:
+   同じタスクに次を貼ると環境設定の確認になる（認証ファイルの中身は表示させない）:
    ```
-   ~/.agents/skills の一覧と、python3 ~/.agents/cloud/cc-subscription-call.py --check の結果をそのまま報告してください
+   環境設定の確認です。次のコマンドを順に実行し、各出力をそのまま（省略・要約せず）報告してください。トークンや認証ファイルの中身は絶対に表示しないこと。
+   1. readlink -f ~/.agents
+   2. ls ~/.agents/skills | wc -l && ls ~/.agents/skills
+   3. ls ~/.codex/agents ~/.codex/skills && cat ~/.codex/AGENTS.md
+   4. which claude codex && claude --version && codex --version
+   5. test -f /root/.config/claude-subscription/oauth-token && echo AUTH_FILE=present || echo AUTH_FILE=absent
+   6. python3 ~/.agents/cloud/cc-subscription-call.py --check; echo exit=$?
+   7. bash ~/.agents/cloud/codex-setup.sh --maintenance; echo exit=$?
+   最後に判定を報告: ~/.agents がリンクでスキル 15 件か / 5 が present なら 6 は {"exit_code": 0, "ok_exact": true}、absent なら CLAUDE_SUBSCRIPTION_CALL_FAILED で正常 / 7 の最終行が CODEX_CLOUD_MAINTENANCE_OK claude_linked=1 または =0 か
    ```
-   Secret ありなら `{"exit_code": 0, "ok_exact": true}`、なしなら `CLAUDE_SUBSCRIPTION_CALL_FAILED` が期待値。
+   期待値: Secret あり → 5 present / 6 ok_exact true / 7 claude_linked=1。Secret なし → 5 absent / 6 CALL_FAILED / 7 claude_linked=0。
 
 **トークンの期限が来たら**（Setup / Maintenance が 30 日前から警告を出す）:
 `claude setup-token` で再発行 → Secret を登録した**全環境**で値を差し替え → `codex-setup.sh` の `CLAUDE_TOKEN_ISSUED` を更新して publish。
