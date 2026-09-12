@@ -104,19 +104,20 @@ Codex クラウドの環境はリポジトリ単位で、Secret も環境単位�
 環境を作るたびに次を行う。所要 5 分。
 
 1. **環境を作成**: chatgpt.com/codex の Environments で対象リポジトリを選んで作成。
-2. **Setup script** に [`cloud/codex-setup.sh`](codex-setup.sh) の全文を貼る。
-3. **Maintenance script** に [`cloud/codex-maintenance.sh`](codex-maintenance.sh) の全文を貼る。
+2. **Setup script** に `cloud/codex-setup.sh` の全文を貼る。
+3. **Maintenance script** に `cloud/codex-maintenance.sh` の全文を貼る。
 4. **Secret（任意）**: この環境から Claude Code を呼ばせたいときだけ `CC_SUBSCRIPTION_TOKEN` を登録する。
    値は手元の端末で `claude setup-token` を実行して最後に表示されるトークン（`sk-ant-oat01-` で始まる）。
    末尾改行なし。**同じトークンを全環境で使い回してよい**（1 年有効。期限は `codex-setup.sh` の `CLAUDE_TOKEN_ISSUED` が管理）。
    登録しない環境はスキル配置だけで正常に動く。
 5. **エージェント実行中のネットワーク許可**（Secret を登録した環境のみ必要）: 次の 4 ドメインを POST 込みで許可する。
    `api.anthropic.com` / `claude.ai` / `claude.com` / `platform.claude.com`
-6. **保存して初回セットアップを実行**し、ログ末尾を確認する:
+6. **保存したら、その環境で最初のタスクを開く**。Setup script は環境作成画面では走らず、
+   最初のタスクでコンテナが作られるときに自動実行される。タスク画面の Setup ログ末尾を確認する:
    - `CODEX_CLOUD_SETUP_OK claude_linked=1` … Claude 連携あり
    - `CODEX_CLOUD_SETUP_OK claude_linked=0` … スキル配置のみ（Secret 未登録）
-   - `codex cloud setup: ...` で止まる … メッセージのとおりに直す（Secret の形式・日付など）
-7. **動作確認**（任意）: その環境でタスクを開き、次を貼る。
+   - `codex cloud setup: ...` で止まる … メッセージのとおりに直して保存し、タスクを開き直す
+   同じタスクに次を貼ると動作確認になる:
    ```
    ~/.agents/skills の一覧と、python3 ~/.agents/cloud/cc-subscription-call.py --check の結果をそのまま報告してください
    ```
