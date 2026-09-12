@@ -126,10 +126,10 @@ Codex クラウドの環境はリポジトリ単位で、Secret も環境単位�
    4. which claude codex && claude --version && codex --version
    5. test -f /root/.config/claude-subscription/oauth-token && echo AUTH_FILE=present || echo AUTH_FILE=absent
    6. python3 ~/.agents/cloud/cc-subscription-call.py --check; echo exit=$?
-   7. bash ~/.agents/cloud/codex-setup.sh --maintenance; echo exit=$?
-   最後に判定を報告: ~/.agents がリンクでスキル 15 件か / 5 が present なら 6 は {"exit_code": 0, "ok_exact": true}、absent なら CLAUDE_SUBSCRIPTION_CALL_FAILED で正常 / 7 の最終行が CODEX_CLOUD_MAINTENANCE_OK claude_linked=1 または =0 か
+   最後に判定を報告: ~/.agents がリンクでスキル 15 件か / 5 が present なら 6 は {"exit_code": 0, "ok_exact": true}、absent なら CLAUDE_SUBSCRIPTION_CALL_FAILED で正常
    ```
-   期待値: Secret あり → 5 present / 6 ok_exact true / 7 claude_linked=1。Secret なし → 5 absent / 6 CALL_FAILED / 7 claude_linked=0。
+   期待値: Secret あり → 5 present / 6 ok_exact true。Secret なし → 5 absent / 6 CALL_FAILED。
+   注意: `codex-setup.sh --maintenance` はタスク中に手で叩かない（GitHub への pull を含み、タスク実行中は許可ドメイン外で 403 になる。2026-09-12 実測）。
 
 **トークンの期限が来たら**（Setup / Maintenance が 30 日前から警告を出す）:
 `claude setup-token` で再発行 → Secret を登録した**全環境**で値を差し替え → `codex-setup.sh` の `CLAUDE_TOKEN_ISSUED` を更新して publish。
