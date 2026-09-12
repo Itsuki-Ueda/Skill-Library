@@ -110,7 +110,10 @@ Codex クラウドの環境はリポジトリ単位で、Secret も環境単位�
    値は手元の端末で `claude setup-token` を実行して最後に表示されるトークン（`sk-ant-oat01-` で始まる）。
    末尾改行なし。**同じトークンを全環境で使い回してよい**（1 年有効。期限は `codex-setup.sh` の `CLAUDE_TOKEN_ISSUED` が管理）。
    登録しない環境はスキル配置だけで正常に動く。
-5. **エージェント実行中のネットワーク許可**（Secret を登録した環境のみ必要）: 次の 4 ドメインを POST 込みで許可する。
+5. **エージェント実行中のネットワーク許可**（Secret を登録した環境のみ必要）:
+   まずエージェント実行中のインターネットアクセスを**オン**にする（既定はオフ。オフのままだと全ホストが
+   `CONNECT tunnel failed, response 403` になり `--check` が失敗する。2026-09-12 実測）。
+   そのうえで次の 4 ドメインを POST 込みで許可する。
    `api.anthropic.com` / `claude.ai` / `claude.com` / `platform.claude.com`
 6. **保存したら、その環境で最初のタスクを開く**。Setup script は環境作成画面では走らず、
    最初のタスクでコンテナが作られるときに自動実行される。タスク画面の Setup ログ末尾を確認する:
@@ -306,3 +309,7 @@ bash ~/.agents/skills/skill-ops/scripts/publish.sh "<type>: <変更内容>"
 - **2026-09-07 / public 化（履歴を 1 commit `d80f166` に squash）→ Setup script 貼り直し → 仕事用リポジトリのクラウドセッションで `selfcheck.sh` 全項目 OK。**
   Plugin 版 `d80f166477c3`、`~/.agents` は Plugin キャッシュへの symlink、スキル 15 件、Codex 側 7 件、Ponytail 常時モード。
   唯一の NG は Codex device-auth（人間のブラウザ承認が毎環境で必要。仕様どおり）。本方式の成立を確認。
+- **2026-09-12 / Codex クラウドの環境を手順 3.5 で作成し、確認プロンプトで検証。**
+  `~/.agents` → `/root/.local/share/skill-library`、スキル 15 件、`~/.codex` 配置、Claude Code 2.1.197 / codex-cli 0.154.0 導入、
+  認証ファイル present。初回は `--check` が失敗（エージェント実行中のインターネットがオフ、全ホスト 403）→ オンにして 4 ドメイン許可後
+  `{"exit_code": 0, "ok_exact": true}`。Codex クラウドからの Claude サブスク連携が成立。
