@@ -52,6 +52,7 @@ CodexからClaude Codeを呼ぶすべてのタスク・スキル・臨時作業�
 
 - 環境のSetup scriptに `cloud/codex-setup.sh`、Maintenance scriptに `cloud/codex-maintenance.sh` の内容を貼る。
 - Secret `CC_SUBSCRIPTION_TOKEN` の値は**人間が登録する**。取得は人間の端末で `claude setup-token` を実行する。値を会話・コード・通常の環境変数設定へ貼らない。
+- **Secret は任意**。登録した環境だけ Claude 連携が有効。未登録の環境では `cc-subscription-call.py` は認証ファイル無しで失敗する（`CLAUDE_SUBSCRIPTION_CALL_FAILED`）。その場合は Claude を呼ばず、人間に「この環境は Claude 連携なし」と報告して Codex 単独で進める。
 - 認証ファイルは `/root/.config/claude-subscription/oauth-token`。内容の表示・プロンプトへの挿入は禁止。`cc-subscription-call.py` の内部だけで読み、子プロセスへ渡す。
 - Claude 呼び出しは `cloud/cc-subscription-call.py` が唯一の経路。確認は `python3 ~/.agents/cloud/cc-subscription-call.py --check`。
 - レビュー・実装は、プロンプト本文を UTF-8 の一時ファイルへ書き、`python3 ~/.agents/cloud/cc-subscription-call.py <absolute-prompt-file>` を**別の shell tool call** で呼ぶ（Windows 節と同じ規律）。
@@ -59,7 +60,7 @@ CodexからClaude Codeを呼ぶすべてのタスク・スキル・臨時作業�
 - APIキー、Console認証、`--bare`、別の接続先へのフォールバックは禁止。失敗時は終了コードと固定メッセージだけを報告し、認証情報を含み得る生の出力を表示しない。
 - 同一タスク中に再利用する認証ファイルは呼び出しごとに削除せず、タスク終了時に削除する。キャッシュを有効にした場合、セットアップ時の認証ファイルが最大12時間のスナップショットに残り得る。タスク内での削除はキャッシュの失効操作ではない。
 - 認証を撤去するときはSecretを削除し、Setup / Maintenanceの認証設定を外して環境を保存する。Secret変更でキャッシュが無効になる。発行元トークンの失効とは別の操作である。
-- キャッシュ再開時の配置・認証ファイル確認はMaintenanceに任せる。認証ファイルが無い場合は人間がSecretを登録してセットアップを再実行する。12時間のキャッシュ保持と実際のレビュー・実装のE2Eは未実測。
+- キャッシュ再開時の配置・認証ファイル確認はMaintenanceに任せる。Claude 連携を有効にしたい環境では、人間が Secret を登録して Setup を再実行する。12時間のキャッシュ保持と実際のレビュー・実装のE2Eは未実測。
 
 ## Git運用
 

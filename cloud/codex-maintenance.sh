@@ -3,7 +3,7 @@
 #
 # Setup が作成した Skill-Library、~/.agents、~/.codex と、Secret から生成済みの
 # ~/.config/claude-subscription/oauth-token を確認する。Secret が Setup 後に消える
-# 前提なので、認証ファイルは再生成せず、無ければ Setup の再実行を要求して失敗する。
+# 前提なので認証ファイルは再生成せず、認証ファイルが無い環境は Claude 連携なしとして続行する。
 
 set -euo pipefail
 set +x

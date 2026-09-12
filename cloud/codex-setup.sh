@@ -2,7 +2,8 @@
 # Codex クラウドの Environment の Setup script に貼り付ける内容。
 #
 # 前提:
-# - Secret `CC_SUBSCRIPTION_TOKEN` は、人間が `claude setup-token` の出力を登録する。
+# - Secret `CC_SUBSCRIPTION_TOKEN` は任意。登録した環境だけ Claude 連携が有効になる
+#   （人間が `claude setup-token` の出力を登録する）。未登録ならスキル配置と CLI 導入だけ行う。
 # - エージェント段階で次の4ドメインを許可する（POST を含む）: api.anthropic.com /
 #   claude.ai / claude.com / platform.claude.com。Setup 段階はインターネット接続で
 #   GitHub/npm から取得する。
@@ -14,7 +15,7 @@
 # - キャッシュに認証ファイルが残るため、その Environment にアクセスできる範囲だけで運用する。
 # - Claude の単一リクエストと別タスク再利用は、キャッシュ無効の A/B 実測で確認済み。
 #   キャッシュされた認証ファイルが別タスクで継続すること自体はこの構成では検証しない。
-# - 失敗時は起動を続行せず fail-closed で停止する。
+# - Secret が登録されているのに不正な場合は、起動を続行せず fail-closed で停止する。
 # - トークンの期限は CLAUDE_TOKEN_ISSUED で管理。再発行時は Secret 更新＋この日付更新＋Setup 再実行。
 #
 # Secret は Setup 中にだけ読み、`~/.config/claude-subscription/oauth-token` (0600) に
@@ -46,8 +47,6 @@ require_command() {
 [ "${HOME:-}" = /root ] || fail 'Codex クラウドの HOME=/root 環境で実行してください'
 
 write_auth_file() {
-  : "${CC_SUBSCRIPTION_TOKEN:?Secret CC_SUBSCRIPTION_TOKEN を人間が登録してください}"
-  [ -n "$CC_SUBSCRIPTION_TOKEN" ] || fail 'Secret CC_SUBSCRIPTION_TOKEN が空です'
   case "$CC_SUBSCRIPTION_TOKEN" in
     sk-ant-oat01-*) ;;
     *) fail '`claude setup-token` が表示した最終トークンを Secret に登録してください' ;;
@@ -176,23 +175,37 @@ case "${1:-setup}" in
     require_command python3
     update_repository
     ensure_layout
-    check_auth_file
-    check_token_expiry
-    printf 'CODEX_CLOUD_MAINTENANCE_OK\n'
+    if [ -f "$AUTH_FILE" ]; then
+      check_auth_file
+      check_token_expiry
+      claude_linked=1
+    else
+      printf 'codex cloud maintenance: Claude 連携なし（認証ファイルなし）のまま続行します\n' >&2
+      claude_linked=0
+    fi
+    printf 'CODEX_CLOUD_MAINTENANCE_OK claude_linked=%s\n' "$claude_linked"
     ;;
   setup)
     require_command git
     require_command python3
     require_command npm
-    write_auth_file
+    if [ -n "${CC_SUBSCRIPTION_TOKEN:-}" ]; then
+      write_auth_file
+      claude_linked=1
+    else
+      printf 'codex cloud setup: Secret CC_SUBSCRIPTION_TOKEN 未登録のため Claude 連携なしで続行します（スキル配置のみ）\n' >&2
+      claude_linked=0
+    fi
     update_repository
     timeout 180 npm install -g --no-audit --no-fund @openai/codex @anthropic-ai/claude-code
     require_command claude
     require_command codex
     ensure_layout
-    check_auth_file
-    check_token_expiry
-    printf 'CODEX_CLOUD_SETUP_OK\n'
+    if [ "$claude_linked" -eq 1 ]; then
+      check_auth_file
+      check_token_expiry
+    fi
+    printf 'CODEX_CLOUD_SETUP_OK claude_linked=%s\n' "$claude_linked"
     ;;
   *)
     fail "使い方: $0 [--maintenance]"
