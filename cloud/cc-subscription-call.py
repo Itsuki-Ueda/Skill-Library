@@ -6,6 +6,8 @@
 #   python3 ~/.agents/cloud/cc-subscription-call.py <prompt-file>
 #   python3 ~/.agents/cloud/cc-subscription-call.py --check
 #
+# 通常呼び出しはカレントディレクトリで実行する（Codex はリポジトリ直下で呼ぶこと）。
+#
 # 失敗時は認証情報を含み得る生の出力を出さず、固定メッセージだけを stderr に出す。
 
 import json
@@ -38,7 +40,7 @@ def read_token() -> str:
     return token
 
 
-def run_claude(prompt: str, extra_args: list, timeout: int) -> subprocess.CompletedProcess:
+def run_claude(prompt: str, extra_args: list, timeout: int, cwd=None) -> subprocess.CompletedProcess:
     token = read_token()
     cli = shutil.which('claude')
     if not cli:
@@ -51,7 +53,7 @@ def run_claude(prompt: str, extra_args: list, timeout: int) -> subprocess.Comple
                    CLAUDE_CODE_OAUTH_TOKEN=token)
         return subprocess.run(
             [cli, '-p', prompt] + extra_args + BASE_ARGS,
-            cwd=home, env=env, stdin=subprocess.DEVNULL, capture_output=True,
+            cwd=cwd if cwd is not None else home, env=env, stdin=subprocess.DEVNULL, capture_output=True,
             text=True, timeout=timeout)
 
 
@@ -70,7 +72,7 @@ def check() -> int:
 def call(prompt_file: str) -> int:
     prompt = Path(prompt_file).read_text(encoding='utf-8')
     try:
-        run = run_claude(prompt, [], 1800)
+        run = run_claude(prompt, [], 1800, cwd=os.getcwd())
     except Exception as exc:
         print('CLAUDE_SUBSCRIPTION_CALL_FAILED exit_code=1 error=%s' % type(exc).__name__,
               file=sys.stderr)
