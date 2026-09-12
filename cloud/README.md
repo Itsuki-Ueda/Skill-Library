@@ -98,6 +98,36 @@ ChatGPT アカウントによる**サブスク認証**です（API キーは使�
 
 ---
 
+## 3.5 Codex クラウドの環境を新しく作るときの手順（毎回・リポジトリごと）
+
+Codex クラウドの環境はリポジトリ単位で、Secret も環境単位（Codex 公式仕様、2026-09-12 確認）。
+環境を作るたびに次を行う。所要 5 分。
+
+1. **環境を作成**: chatgpt.com/codex の Environments で対象リポジトリを選んで作成。
+2. **Setup script** に [`cloud/codex-setup.sh`](codex-setup.sh) の全文を貼る。
+3. **Maintenance script** に [`cloud/codex-maintenance.sh`](codex-maintenance.sh) の全文を貼る。
+4. **Secret（任意）**: この環境から Claude Code を呼ばせたいときだけ `CC_SUBSCRIPTION_TOKEN` を登録する。
+   値は手元の端末で `claude setup-token` を実行して最後に表示されるトークン（`sk-ant-oat01-` で始まる）。
+   末尾改行なし。**同じトークンを全環境で使い回してよい**（1 年有効。期限は `codex-setup.sh` の `CLAUDE_TOKEN_ISSUED` が管理）。
+   登録しない環境はスキル配置だけで正常に動く。
+5. **エージェント実行中のネットワーク許可**（Secret を登録した環境のみ必要）: 次の 4 ドメインを POST 込みで許可する。
+   `api.anthropic.com` / `claude.ai` / `claude.com` / `platform.claude.com`
+6. **保存して初回セットアップを実行**し、ログ末尾を確認する:
+   - `CODEX_CLOUD_SETUP_OK claude_linked=1` … Claude 連携あり
+   - `CODEX_CLOUD_SETUP_OK claude_linked=0` … スキル配置のみ（Secret 未登録）
+   - `codex cloud setup: ...` で止まる … メッセージのとおりに直す（Secret の形式・日付など）
+7. **動作確認**（任意）: その環境でタスクを開き、次を貼る。
+   ```
+   ~/.agents/skills の一覧と、python3 ~/.agents/cloud/cc-subscription-call.py --check の結果をそのまま報告してください
+   ```
+   Secret ありなら `{"exit_code": 0, "ok_exact": true}`、なしなら `CLAUDE_SUBSCRIPTION_CALL_FAILED` が期待値。
+
+**トークンの期限が来たら**（Setup / Maintenance が 30 日前から警告を出す）:
+`claude setup-token` で再発行 → Secret を登録した**全環境**で値を差し替え → `codex-setup.sh` の `CLAUDE_TOKEN_ISSUED` を更新して publish。
+Secret を変えるとその環境のキャッシュは無効化され、次回タスクで Setup が再実行される。
+
+---
+
 ## 4. 期待される挙動（クラウドセッション開始時に何が起きるか）
 
 1. スナップショットから VM が起動する。Plugin は `~/.claude/plugins/cache/ueda/skill-library/{commit SHA}/` に展開済み。
@@ -222,6 +252,9 @@ bash ~/.agents/skills/skill-ops/scripts/publish.sh "<type>: <変更内容>"
 | ファイル | 役割 |
 |---|---|
 | `cloud/setup.sh` | claude.ai/code の環境設定「Setup script」欄に貼る内容。**Plugin 導入の唯一の経路** |
+| `cloud/codex-setup.sh` | Codex クラウド環境の「Setup script」欄に貼る内容。Skill-Library 配置・CLI 導入・（Secret があれば）Claude 認証ファイル生成と期限チェック |
+| `cloud/codex-maintenance.sh` | Codex クラウド環境の「Maintenance script」欄に貼る内容。キャッシュ再開時に codex-setup.sh --maintenance を呼ぶ |
+| `cloud/cc-subscription-call.py` | Codex クラウド（Linux）から Claude Code をサブスク認証で呼ぶ唯一の経路（`--check` / `<prompt-file>`） |
 | `cloud/selfcheck.sh` | クラウドセッション内で走らせる自己診断（OK/NG/SKIP、常に exit 0） |
 | `cloud/README.md` | このファイル |
 | `hooks/bootstrap.sh` | Plugin の SessionStart hook。Plugin 更新と、クラウドで `~/.agents` 等を用意する本体 |
