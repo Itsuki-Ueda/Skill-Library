@@ -19,8 +19,8 @@ routing:
   # プラン曖昧さ測定プローブ（[3]初回ラウンド。正本=team-plan-probeスキル。測定器なので下位モデル固定）
   plan-probe:       { agent: plan-probe }                             # CC Orchestrator用(haiku)
   # Codexレビュアーの正本。gate1(Codex実装分の独立レビュー)とcc-worker実装分のレビューの両方で使う。
-  # effort=low明示によりプロトコル§1の段階制(high→medium)は無効化され全ラウンドlow固定。
-  codex-review: { cli: codex, model: gpt-6-astra, effort: low }
+  # effort=medium明示によりプロトコル§1の段階制(high→medium)は無効化され全ラウンドmedium固定。
+  codex-review: { cli: codex, model: gpt-5.6-sol, effort: medium }
 
   # 執行系（[4]〜[6]の進行管理を担うexecutorサブエージェント。Fable温存の要）
   # **Orchestratorが Fable のときだけ使う**（Opus等が指揮する場合は委譲せず直接実行）
