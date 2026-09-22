@@ -15,7 +15,7 @@ agent-team中の分担は本書と共通本体を適用し、通常セッショ�
 - `cli: codex` を実行するときだけ `~/.agents/docs/codex-protocol.md` を読む。実装は§3d、調査・計画/コードレビューは§3a、継続は§3c（実装にはsandbox指定）。
 - CLIの共通規律はdispatchを優先し、プロトコルの既定モデル・修正回数・親の直接実装への切替で上書きしない。
 - `agent:` はAgentツールで名前指定して起動し、継続は同じAgentへのSendMessage。role skillの正本パスと契約/対象を必ず渡す。
-- 非同期起動し、CLIのsession ID・`-o` 出力・エラーログのパスを記録する。回収は完了通知を既定とする。起動元のexecutorが交代して通知を受けられない場合だけ、後任は `-o` ファイルの出現を待機手段（Monitor等）で1回待つ。定期的に見に行かない。
+- 非同期起動し、CLIのsession ID・`-o` 出力・エラーログ・終了コードファイル（codex-protocol §3d の `<out>.exit`）のパスを記録する。回収は完了通知を既定とする。起動元のexecutorが交代して通知を受けられない場合だけ、後任は `<out>.exit` の出現を待機手段（Monitor等）で1回待ち、**終了コード0かつ `-o` が空でない**ことで完了と判定する。定期的に見に行かない。`-o` の中身の合否（NEED-DECISION等）は完了判定とは別に読む。usage limit・タイムアウト・中断時に `-o` が残るかは未確認（2026-09-22時点、codex-cli 0.153.4）。
 - Windowsのgit `ref:path` はPowerShellで全体を引用する。Git Bashが必要ならMSYS_NO_PATHCONV=1を使う。
 
 ## レビュー経路

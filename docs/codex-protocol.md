@@ -47,11 +47,12 @@ codex exec resume <session id> -o <out> -c 'model=<model>' -c 'model_reasoning_e
 ### (d) 実装（サンドボックス内で Codex に書かせる）
 実装指示（§8c 雛形＋仕様全文）は **stdin** で渡す。sandbox は必ず `workspace-write`、対象 worktree に `-C` で固定。
 ```
-"<実装指示全文>" | codex exec -s workspace-write -C <worktree絶対パス> -o <out> -c 'model=<model>' -c 'model_reasoning_effort=<effort>' 2><err>
+"<実装指示全文>" | codex exec -s workspace-write -C <worktree絶対パス> -o <out> -c 'model=<model>' -c 'model_reasoning_effort=<effort>' 2><err>; echo $? > <out>.exit
 ```
 - **禁止フラグ**: `--dangerously-bypass-approvals-and-sandbox` / `--ignore-rules` / `--add-dir`。
 - 実装は 10 分（PowerShell ツール上限）を超え得る → **`run_in_background` で起動し、完了後に `<out>` を読む**。
   session id は `<err>`（stderr リダイレクト先）のヘッダから回収する。
+- `<out>.exit` は起動元以外（交代後のexecutor等）が完了と終了コードを判定するためのファイル。`-o` は正常完了時にプロセス終了直前に1回だけ書かれ、起動直後の失敗では作られない（2026-09-22 実測、0.153.4）。PowerShellから起動する場合は `$?` ではなく `$LASTEXITCODE` を書く。
 - **修正の差し戻しは (c) resume 形に sandbox 指定を付けて行う**（引き継がれる保証がないため毎回明示）。
   **フラグの位置に注意（2026-07-03 実測）**: `-s`/`-C` は `exec` と `resume` の**間**に置く。
   `codex exec -s workspace-write -C <worktree> resume <session id> -o <out> -c ... "<プロンプト>"`
