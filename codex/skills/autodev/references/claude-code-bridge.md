@@ -72,8 +72,10 @@ agent-team の hard-worker（opus / xhigh）やレビュー（opus / high）は�
 ```powershell
 $promptPath = Join-Path (Get-Location) ('.codex-cc-prompt-' + [Guid]::NewGuid().ToString('N') + '.txt')
 $prompt = @"
-モード=差分レビュー
-対象 diff 範囲=origin/main...HEAD
+モード: 初回差分レビュー
+比較元: {実行側が確定したbase-ref}
+対象版: {コミットSHA、またはHEADと作業ツリーの識別情報}
+未コミット変更: {タスク所有のstaged・unstaged・untrackedの範囲／なし}
 
 対象の作成経緯を知らない第三者として、reviewer定義の規律で審査してください。
 P0-P3タグ、根拠箇所、具体的な壊れ方、VERDICTを出してください。

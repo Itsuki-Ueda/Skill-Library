@@ -1,6 +1,6 @@
 ---
 name: memory-ops
-description: プロジェクトの記憶ファイルが「増えすぎる・古くなる・二重に書かれる」のを防ぐ記憶管理スキル。対象はリポジトリ AGENTS.md（全セッションが読む共有記憶）と .agents/state/ の STATE.md・MEMORY.md・INBOX.md。agent-team の有無に関わらず全セッション・全ツール（CC/Codex）が従う。教訓・罠・人間の決定をどこに書くかの判定（AGENTS.md／MEMORY.md／CC自動メモリ）、記憶の書式（症状→対処・確認日・根拠）、候補箱 INBOX 経由の昇格（初出は候補、3回目で正式、人間指示は直行）、上限と計測（check-size.sh）、サブコマンド distill(STATE.md蒸留)・refresh(根拠照合と最新化)・promote(候補の昇格と掃除)を規定する。「/memory-ops」「記憶を整理」「AGENTS.mdを整理」「STATEを蒸留」「MEMORYを最新化」「古い記憶を掃除」、SessionStart hook が閾値超過（AGENTS.md>200行・STATE.md>100行・MEMORY.md>150行・INBOX.md>60行）を報告したとき、AGENTS.md や MEMORY.md に何かを書き足そうとしたときに必ず使う。
+description: "プロジェクトの記憶を追加・整理・更新するとき、またはサイズ超過が報告されたときに使う。「記憶を整理」「MEMORYを最新化」も対象。"
 ---
 
 # /memory-ops — プロジェクト記憶の管理

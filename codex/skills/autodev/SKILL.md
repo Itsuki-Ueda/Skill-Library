@@ -1,6 +1,6 @@
 ---
 name: autodev
-description: "Codexを司令塔にし、カスタムAgent researcher/coding/reviewerを明示起動して、調査、計画、実装、検証、独立レビュー、必要時のClaude Code連携、PR・mergeまで進める自動開発ワークフロー。"
+description: "autodevを明示指定した開発依頼と、その進行中タスクの継続に使うCodex用設定。必要な実装・独立レビュー・検証を行い、依頼された終了地点まで進める。"
 ---
 
 # Autodev — Codex ハーネス固有設定
@@ -10,13 +10,13 @@ description: "Codexを司令塔にし、カスタムAgent researcher/coding/revi
 
 ## 必須のカスタムAgent
 
-| Agent名 | 主責務 | 期待プロファイル |
-|---|---|---|
-| `researcher` | 読み取り専用の調査・影響分析・根拠収集 | GPT-5.6 Luna / Max |
-| `coding` | 承認済み仕様の実装と限定的な検証 | GPT-5.6 Sol / Medium |
-| `reviewer` | 計画・差分・PRの独立レビュー | GPT-5.6 Sol / Extra High |
+| Agent名 | 主責務 |
+|---|---|
+| `researcher` | 読み取り専用の調査・影響分析・根拠収集 |
+| `coding` | 承認済み仕様の実装と限定的な検証 |
+| `reviewer` | 計画・差分・PRの独立レビュー |
 
-モデル・推論・sandbox・Agent固有規律は各TOML（`~/.codex/agents/`）を正本とする。このSkillからモデルを上書きしない。実行ログやUIで確認できない限り、期待プロファイルが実際に適用されたと断定しない。
+モデル・推論・sandbox・Agent固有規律は各TOML（`~/.codex/agents/`）を正本とする。このSkillからモデルを上書きしない。実行ログやUIで確認できないモデル・推論設定は断定しない。
 
 ## 実装者の解決
 既定実装者 = Codex の `coding` Agent。ユーザーが CC 実装を明示した場合のみ CC。
@@ -110,7 +110,7 @@ merge 条件: 必須 CI green / P0-P2 ゼロ / 未解決の設計判断なし / 
 - 実装権限: 実装済み / 計画のみ / 承認待ち
 - Agent ポリシー: strict / degraded
 - 使用 Agent: researcher（使用数、カスタム/フォールバック）/ coding（カスタム/CC/親実装/未使用）/ reviewer（各ラウンド）
-- 期待プロファイルが実ログで確認できたか
+- 実際に確認できた実行情報。未確認のモデル・推論設定は断定しない
 - CC モード: なし / 推奨 / 必須
 - CC ブリッジ結果: 直接CLI / agmsg / 利用不可 / 未使用
 

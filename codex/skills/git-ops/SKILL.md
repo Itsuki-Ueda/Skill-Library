@@ -1,6 +1,6 @@
 ---
 name: git-ops
-description: Git運用のCodex固有設定。正本 ~/.agents/skills/git-ops/SKILL.md を読んだ上で、sandbox・承認付き外部実行・GitHub操作・一時worktree置き場を定義する。Git操作前に正本と併せて読む。
+description: "ブランチ、PR、マージ、worktreeの操作に使うCodex用設定。共通git-opsと併用する。「gitを掃除」「worktreeの後片付け」も対象。"
 ---
 
 # git-ops — Codex ハーネス固有設定

@@ -1,6 +1,6 @@
 ---
 name: git-ops
-description: Git運用の正本（全プロジェクト共通）。ブランチ命名・寿命・PR・スカッシュマージ・「一時worktreeのライフサイクル（作成→役目終了で即closeout）」・「マージ後の即後片付け（ローカル/リモートのブランチ削除＋worktree削除）」・定期棚卸しの手順を規定する。ブランチ作成/PR作成/マージ/ブランチ削除/worktree作成/調査用・レビュー用worktree/worktree操作/「gitを掃除」「ブランチが多い」「worktreeが残る」「後片付け」等、Git のブランチ・PR・worktree を触るあらゆる操作の前に必ず読む。
+description: "ブランチ、PR、マージ、worktreeの作成・操作・後片付けに使う。「gitを掃除」「worktreeの後片付け」も対象。"
 ---
 
 # git-ops — Git運用の正本

@@ -1,6 +1,6 @@
 ---
 name: team-code-reviewer
-description: /team(オーケストレーター)から依頼されるコード差分レビュー担当としての行動規範。プロンプトに「team-code-reviewerを読め」とあるとき、契約(T-xxx.md)に照らした差分レビュー依頼のときに必ず読む。
+description: "コード差分の独立レビュー担当として、対象差分を割り当てられたときに読む行動規範。"
 ---
 
 # team-code-reviewer — コードレビュアーの行動規範

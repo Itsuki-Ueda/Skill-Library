@@ -9,7 +9,7 @@ Git運用・Git author設定・スキル統合運用ルール）は正本側に�
 
 ## PR Review Worktrees
 - Do not reuse old review worktrees by default.
-- Before reviewing a PR, run a fresh fetch/prune and create a fresh temporary worktree from the latest target state: latest `origin/main` plus the PR's latest head or merge ref.
+- Before reviewing a PR, run a fresh fetch/prune and create a fresh temporary worktree from the latest target state: the target PR's confirmed base ref plus its latest head or merge ref.
 - Verify the worktree HEAD matches the intended PR/ref before reviewing.
 - Prefer temporary locations such as `C:\tmp` for review worktrees, and clean them up after the review.
 - Before removing any worktree, verify the exact path, worktree registration, branch/detached state, `git status`, and meaningful `git diff`.

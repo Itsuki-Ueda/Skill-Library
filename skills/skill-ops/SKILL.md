@@ -1,6 +1,6 @@
 ---
 name: skill-ops
-description: "skills/agents/global rules の構造管理と編集手順（CC・Codex 共通の正本）。~/.agents/skills/*、~/.claude/skills/*、~/.codex/skills/*、~/.claude/agents/*、~/.codex/agents/*、~/.agents/AGENTS.md、~/.claude/CLAUDE.md、~/.codex/AGENTS.md のいずれかを編集・作成・削除・移動・移設・リネームする前に必ず読む。Junction 判定、ラッパー vs 実体の見分け方、新規スキル追加手順、編集後の公開（publish）手順（scripts/publish.sh による commit・push・gh アカウント切替と復帰）、公開範囲（public リポジトリに載せてよい情報・載せてはいけない情報の境界と publish-guard.sh による機械検査）、Junction 修復、典型的な壊し方の例を含む。「スキル運用」「skills 整理」「agents 定義変更」「グローバルルール変更」「スキルを公開」「.agents を push」でも必ず使う。"
+description: "スキル、Agent定義、グローバルルールの変更・整理・公開、またはその変更案を作るときに使う。正本とリンク構造を確認する。"
 ---
 
 # skill-ops — スキル・エージェント定義・グローバルルールの構造管理正本

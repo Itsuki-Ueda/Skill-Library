@@ -1,6 +1,6 @@
 ---
 name: team-plan-reviewer
-description: /team(オーケストレーター)から依頼される設計文書・プラン・タスク分解のレビュー担当としての行動規範。プロンプトに「team-plan-reviewerを読め」とあるとき、プラン文書・分解計画・設計書のレビュー依頼のときに必ず読む。
+description: "計画の独立レビュー担当として、対象文書を割り当てられたときに読む行動規範。"
 ---
 
 # team-plan-reviewer — 設計レビュアーの行動規範

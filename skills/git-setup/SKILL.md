@@ -1,6 +1,6 @@
 ---
 name: git-setup
-description: Git初期セットアップの正本（全プロジェクト共通）。「ゼロから新規リポジトリを作ってGitHubに上げるまで」と「既存リポジトリをクローンして開発できる状態にするまで」の順番付き手順を規定する。git init/リポジトリ新規作成/gh repo create/クローン/「開発できる環境にして」「開発環境を作って」「このリポジトリをセットアップして」「新しいプロジェクトを始める」/.gitignore・.gitattributes の初期配置/初回コミット/origin 登録/author・gh認証の確認、を行う前に必ず読む。日常運用（ブランチ・PR・マージ・worktree・後片付け）は git-ops が正本。
+description: "Gitリポジトリの新規作成、初回公開、クローン後の初期設定を行うときに使う。日常のPR・worktree操作はgit-opsを使う。"
 ---
 
 # git-setup — Git初期セットアップの正本
