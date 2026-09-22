@@ -31,14 +31,14 @@ description: "調査・設計判断を伴う機能追加、不具合修正、リ
 レビューの版・再確認・証拠は `~/.agents/skills/agent-team/references/dispatch.md` に従う。
 
 ## CCゲートウェイ・権限
-- 使用するときだけ `~/.agents/codex/skills/autodev/references/claude-code-bridge.md` を読む。認証・起動コマンド・禁止事項はそこが正本。
+- Claude Codeを使うときだけ `~/.agents/skills/claude-code-subscription/SKILL.md` を読み、認証・OS別手順に従う。タスクの受け渡しは `~/.agents/codex/skills/autodev/references/claude-code-bridge.md` を読む。
 - UTF-8（BOMなし）プロンプト作成、ゲートウェイ単独実行、一時ファイル削除を別tool callにする。
 - ゲートウェイへ直接実行以外の認証方式で迂回しない。秘密情報・不要な個人情報を送らない。
 - Gitの権限制約は `~/.agents/codex/skills/git-ops/SKILL.md` に従う。許可された承認付き実行を使い、拒否を迂回しない。
 - Windowsのgit `ref:path` はPowerShellで全体を引用する。
 
 ## 利用不可
-生のエラーを確認してから判断する。hard-worker/cc-workerを量産workerへ黙って落とさず、BLOCKEDとして親から報告する。
+利用不可は実行結果を根拠に判断し、Claude Codeの失敗報告は認証の正本のOS別規則に従う。hard-worker/cc-workerを量産workerへ黙って落とさず、BLOCKEDとして親から報告する。
 review/plan-reviewのCC経路が利用不可ならnative reviewerによる補助レビューは可能だが、別ベンダー未達をBlockersへ残し、共通dispatchの回復待ち/例外受入を適用する。
 native researchが利用不可なら親が権限内の読み取り調査を引き取る。未実行を調査済みとしない。
 

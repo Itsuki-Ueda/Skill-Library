@@ -48,7 +48,11 @@ description: "autodevを明示指定した開発依頼と、その進行中タ�
 - 親自身の自己レビューは、フォールバック後も独立レビューの代替にしない。
 
 ## 開始時の確認
-1. プロジェクト指示を読む（AGENTS.md / AGENTS.override.md / CLAUDE.md / README / CONTRIBUTING / package scripts / Makefile / CI設定）。
+1. 適用されるAGENTS.md / AGENTS.override.md、必要なCLAUDE.mdの指示を確認する。
+   - READMEは利用・実行方法を確認するときに読む。
+   - CONTRIBUTINGは変更規約、提出手順を確認するときに読む。
+   - package scripts / Makefile等は検証コマンドを選ぶときに読む。存在するものだけを対象とする。
+   - CI設定はCI失敗の調査、PR対応、必須ゲートの確認が必要なときに読む。
 2. Git 状態を記録: `START_HEAD = git rev-parse HEAD` / 現在 branch / base branch / `git status --short`。
 3. base ref はプロジェクト規約、PR の base、`origin/HEAD` の順で決める。根拠なしに `origin/main` と決め打ちしない。
 4. 既存変更があれば依頼対象との重なりを確認。同一ファイル/hunk に重なる場合は専用 worktree へ移すか `NEED-DECISION:`。
