@@ -37,6 +37,10 @@ Status: contracted → dispatched → fixing(rN) → review_ok → committed
 ## 並列計画
 
 - <並列グループと、直列化した箇所の名指しの理由>
+- 作業ツリーの共有可否: <検証が他タスクのパスを読み込むか。読み込むならレーン分割、分けないなら停止待ちの明記>
+
+| Lane | 担当タスク | Branch | Worktree | Executor session | 合流順 |
+| --- | --- | --- | --- | --- | --- |
 
 ## Blockers
 

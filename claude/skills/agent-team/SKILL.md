@@ -15,7 +15,7 @@ agent-team中の分担は本書と共通本体を適用し、通常セッショ�
 - `cli: codex` を実行するときだけ `~/.agents/docs/codex-protocol.md` を読む。実装は§3d、調査・計画/コードレビューは§3a、継続は§3c（実装にはsandbox指定）。
 - CLIの共通規律はdispatchを優先し、プロトコルの既定モデル・修正回数・親の直接実装への切替で上書きしない。
 - `agent:` はAgentツールで名前指定して起動し、継続は同じAgentへのSendMessage。role skillの正本パスと契約/対象を必ず渡す。
-- 非同期起動し、CLIのsession ID・出力・エラーログを記録する。完了通知で回収する。
+- 非同期起動し、CLIのsession ID・`-o` 出力・エラーログのパスを記録する。回収は完了通知を既定とする。起動元のexecutorが交代して通知を受けられない場合だけ、後任は `-o` ファイルの出現を待機手段（Monitor等）で1回待つ。定期的に見に行かない。
 - Windowsのgit `ref:path` はPowerShellで全体を引用する。Git Bashが必要ならMSYS_NO_PATHCONV=1を使う。
 
 ## レビュー経路
@@ -36,6 +36,8 @@ Fable親のexecutor運用では、独立性はCodexレビュー、別ベンダ�
 - executorはミッションとqueueへ記帳できる。STATE縮約は親だけ。
 - executorはCLI worker・CLI reviewerを起動できるが、Agentツールによる孫起動はしない。coding-agentが必要なタスクだけ親へ起動を依頼する。親は待機中も依頼を回収して起動・結果返却する。
 - 設計変更、同一タスク2回切替、usage limit、人間判断、破壊的Git操作の判断は親へ返す。同じexecutorへ追加指示して継続する。
+- レーン運用ではレーンごとに1体のexecutorを置き、親が起動する。レーン間の受け渡し（合流・範囲変更の配布）は親が行う。
+- executorはコンテキスト上限に近づいたら `~/.agents/skills/agent-team/references/templates/HANDOVER_TEMPLATE.md` の形で引き継ぎメモをミッションのLogに残し、親へ交代を求める。交代のたびに代・理由・消費トークンをミッションに記録する。理由の無い交代は記録しない。
 
 ## 検証・縮退
 - 完了ゲートはexecutor運用ではexecutor自身が実行し、直接進行管理では親が実行するかrouting.cc-choreへ委譲する。元の実行記録を親が観測できない場合は未検証とし、親側で再実行する。
