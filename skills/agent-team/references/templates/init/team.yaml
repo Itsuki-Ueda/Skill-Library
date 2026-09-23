@@ -7,7 +7,7 @@
 # --- 上書き例（必要になったらコメントを外して使う） ---
 # routing:
 #   worker: { parallel_max: 2 }          # このプロジェクトは並列を絞る
-#   hard-worker: { effort: high }        # コストを抑える
+#   research: { effort: medium }         # コストを抑える
 # limits:
 #   fix_rounds_task: 4
 #   fix_rounds_plan: 2                   # プランレビューの往復を絞る

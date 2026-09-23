@@ -8,7 +8,7 @@ routing:
   # 実装系（原型記事のPareto配分。slug変更時はここだけ直す）
   express:     { cli: codex, model: gpt-6-sol, effort: high }
   worker:      { cli: codex, model: gpt-6-sol, effort: high, parallel_max: 5 }
-  hard-worker: { cli: codex, model: gpt-6-astra,  effort: low }
+  hard-worker: { agent: coding-agent }               # 難度レーン。モデル・effortはエージェント定義に従う(Opus 5.5 / high)
   cc-worker:   { agent: coding-agent }               # モデル・effortはエージェント定義に従う(Opus 5.5 / high)
   # 調査・レビュー系
   # 調査の既定はCodex（team-researcher名指し）。CCへ切り替えるのは
@@ -33,8 +33,7 @@ routing:
 codex_routing:
   express:      { agent: team-worker }                              # sol / high（team-worker 共用）
   worker:       { agent: team-worker, parallel_max: 5 }
-  hard-worker:  { agent: team-hardworker, parallel_max: 5 }
-  #hard-worker:  { cc: coding-agent, model: opus, effort: xhigh }
+  hard-worker:  { cc: coding-agent, model: claude-opus-5-5, effort: high }    # 難度レーン
   cc-worker:    { cc: coding-agent, model: claude-opus-5-5, effort: high }    # 環境制約レーンも同じ CC レーン
   research:     { agent: researcher, parallel_max: 6 }
   review:       { cc: reviewer, model: claude-opus-5-5, effort: medium }  # Codex 実装分のクロスベンダーレビュー

@@ -6,7 +6,7 @@ Claude Codeを使うときだけ `~/.agents/skills/claude-code-subscription/SKIL
 
 ゲートウェイのコマンド末尾には `-Model {モデル}` `-Effort {low|medium|high|xhigh|max}` を付けられる。
 省略時の挙動は従来どおり（Claude Code の既定に従う）。
-agent-team の hard-worker（opus / xhigh）やレビュー（opus / high）はこれを使う。
+agent-team の hard-worker・cc-worker（claude-opus-5-5 / high）やレビュー（claude-opus-5-5 / medium）はこれを使う。
 
 ## レビュー呼び出し
 
