@@ -23,6 +23,7 @@ Codex コマンドの具体構文はこのファイルにだけ書く。各ス�
 ## 2. 実行シェル
 - codex 呼び出しは**必ず PowerShell ツールで実行**する。
 - stdin パイプ構文 `"<prompt>" | codex exec ...` は PowerShell 前提。Bash ツールでは文字列がコマンド解釈されて壊れる。
+- 例外: `~/.agents/skills/agent-team/scripts/cx-run.sh` はプロンプトをファイルから stdin に渡し、§3 の各形と同じ引数を組み立てるので Bash ツールで実行してよい。
 
 ## 3. 呼び出し形
 ### (a) 文書レビュー（初回）

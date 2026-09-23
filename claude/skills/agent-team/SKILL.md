@@ -13,6 +13,7 @@ agent-team中の分担は本書と共通本体を適用し、通常セッショ�
 - CLIのmodel/effortは解決したyaml、Agentのmodelはagent定義が正本（yamlの明示指定があればそれを渡す）。CLI値が未定義の場合だけcodex-protocol §1へフォールバックする。
 - モデル・effortは事前定義を使う。毎dispatchの再照合や人間確認を増やさない。設定変更時に定義・対応経路を確認する。
 - `cli: codex` を実行するときだけ `~/.agents/docs/codex-protocol.md` を読む。実装は§3d、調査・計画/コードレビューは§3a、継続は§3c（実装にはsandbox指定）。
+- CLIの起動は `~/.agents/skills/agent-team/scripts/cx-run.sh`（impl / ask / review / resume）を既定とし、コマンドを手で組み立てない。プロンプトはファイルに書いて渡す。Bashツールで `run_in_background` 起動する。`<out>`・`<out>.err`・`<out>.exit` を同スクリプトが作り、完了時にsession IDを1行で出す。
 - CLIの共通規律はdispatchを優先し、プロトコルの既定モデル・修正回数・親の直接実装への切替で上書きしない。
 - `agent:` はAgentツールで名前指定して起動し、継続は同じAgentへのSendMessage。role skillの正本パスと契約/対象を必ず渡す。
 - 非同期起動し、CLIのsession ID・`-o` 出力・エラーログ・終了コードファイル（codex-protocol §3d の `<out>.exit`）のパスを記録する。回収は完了通知を既定とする。起動元のexecutorが交代して通知を受けられない場合だけ、後任は `<out>.exit` の出現を待機手段（Monitor等）で1回待ち、**終了コード0かつ `-o` が空でない**ことで完了と判定する。定期的に見に行かない。`-o` の中身の合否（NEED-DECISION等）は完了判定とは別に読む。usage limit・タイムアウト・中断時に `-o` が残るかは未確認（2026-09-22時点、codex-cli 0.153.4）。
@@ -41,6 +42,7 @@ Fable親のexecutor運用では、独立性はCodexレビュー、別ベンダ�
 
 ## 検証・縮退
 - 完了ゲートはexecutor運用ではexecutor自身が実行し、直接進行管理では親が実行する。元の実行記録を親が観測できない場合は未検証とし、親側で再実行する。
+- CLI workerの検証は、Codexのセッション記録を元記録として `python ~/.agents/skills/agent-team/scripts/cx_evidence.py <session id> --worktree <作業場所>` で確認する。契約のVerificationのコマンドが「最終変更より後」に終了コード0で記録されていれば、親は再実行しない。記録に無いもの・「変更前」のもの・sandboxで実行できなかったものだけ親が実行する。親が集約ファイル登録などで作業場所を変えた後は、影響する検証を親が実行する。
 - CLI restricted sandboxで不可の環境準備・Git書込・ブラウザ等は、実行可能な親側経路が担当する。ベンダー名だけで可否を判断しない。
 - 調査のCLI usage limitは再試行せずrouting.cc-researchへ（enumerate/semanticの定義を使う）。人間がCC調査を指定した場合も同じ経路。
 - 実装のusage limitは親へ戻して環境レーン等への再割当を判断する。レビューの利用不可は共通の縮退規則で扱い、未達を通常doneにしない。
