@@ -1,7 +1,7 @@
 name = "team-worker"
 description = "agent-team の量産実装ワーカー。タスク契約(T-xxx.md)の Allowed paths 内だけを実装する。"
 model = "gpt-6-luna"
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "max"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Relay", "Squad", "Bolt"]
 

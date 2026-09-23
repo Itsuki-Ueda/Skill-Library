@@ -9,13 +9,13 @@ routing:
   express:     { cli: codex, model: gpt-6-luna, effort: xhigh }
   worker:      { cli: codex, model: gpt-6-luna, effort: max, parallel_max: 5 }
   hard-worker: { cli: codex, model: gpt-6-astra,  effort: low }
-  cc-worker:   { agent: coding-agent }               # モデルはエージェント定義に従う(opus)
+  cc-worker:   { agent: coding-agent }               # モデル・effortはエージェント定義に従う(Opus 5.5 / high)
   # 調査・レビュー系
   # 調査の既定はCodex（team-researcher名指し）。CCへ切り替えるのは
   # (a)人間がCC委託を指示した場合 (b)Codexのusage limitで使えない場合 のみ。
-  research:    { cli: codex, model: gpt-6-luna, effort: xhigh, parallel_max: 6 }
+  research:    { cli: codex, model: gpt-6-luna, effort: max, parallel_max: 6 }
   cc-research: { agent: researcher, enumerate: haiku, semantic: sonnet, parallel_max: 6 }  # フォールバック
-  review:       { agent: reviewer }                  # opus CCレビュアー(直接実行モードのフォールバック)
+  review:       { agent: reviewer }                  # Opus 5.5 / high CCレビュアー(直接実行モードのフォールバック)
   # プラン曖昧さ測定プローブ（[3]初回ラウンド。正本=team-plan-probeスキル。測定器なので下位モデル固定）
   plan-probe:       { agent: plan-probe }                             # CC Orchestrator用(haiku)
   # Codexレビュアーの正本。gate1(Codex実装分の独立レビュー)とcc-worker実装分のレビューの両方で使う。
@@ -24,7 +24,7 @@ routing:
 
   # 執行系（[4]〜[6]の進行管理を担うexecutorサブエージェント。Fable温存の要）
   # **Orchestratorが Fable のときだけ使う**（Opus等が指揮する場合は委譲せず直接実行）
-  executor:    { agent: general-purpose, model: opus, effort: xhigh }
+  executor:    { agent: executor }                 # モデル・effortはエージェント定義に従う(Opus 5.5 / xhigh)
   # 雑務系（ノイジーな中間出力を吸収してOrchestratorのコンテキストを守る）
   # 原則は routing.worker（Codex）へ委譲。Codex環境起因で不可の雑務のみ cc-chore へ
   # （既定workerの実行権限・ツールで不可の場合。検証証拠の基準はdispatchでベンダー共通）
@@ -35,7 +35,7 @@ routing:
 # `cc:`    = Claude Code をサブスク用ゲートウェイ経由で呼ぶ（--agent <cc> --model <model> --effort <effort>）
 # 経路未定義は親へ返す。native実行をroutingのCLIへ暗黙フォールバックしない。
 codex_routing:
-  express:      { agent: team-worker }                              # luna / xhigh
+  express:      { agent: team-worker }                              # luna / max（team-worker 共用）
   worker:       { agent: team-worker, parallel_max: 5 }
   hard-worker:  { agent: team-hardworker, parallel_max: 5 }
   #hard-worker:  { cc: coding-agent, model: opus, effort: xhigh }
