@@ -1,7 +1,7 @@
 name = "researcher"
 description = "コードベース、設定、schema、依存経路、必要時の一次資料を読み取り専用で調査し、path:line根拠と確認状態付きで返すカスタムAgent。"
-model = "gpt-6-luna"
-model_reasoning_effort = "max"
+model = "gpt-6-sol"
+model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 nickname_candidates = ["Scout", "Mapper", "Trace"]
 

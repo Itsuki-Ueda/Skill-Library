@@ -1,7 +1,7 @@
 name = "coding"
 description = "承認済み仕様または実装計画に従い、指定範囲だけを編集し、必要な検証まで行う実装専任のカスタムAgent。"
 model = "gpt-6-sol"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Forge", "Patch", "Builder"]
 

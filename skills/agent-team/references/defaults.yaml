@@ -6,21 +6,21 @@
 
 routing:
   # 実装系（原型記事のPareto配分。slug変更時はここだけ直す）
-  express:     { cli: codex, model: gpt-6-luna, effort: xhigh }
-  worker:      { cli: codex, model: gpt-6-luna, effort: max, parallel_max: 5 }
+  express:     { cli: codex, model: gpt-6-sol, effort: high }
+  worker:      { cli: codex, model: gpt-6-sol, effort: high, parallel_max: 5 }
   hard-worker: { cli: codex, model: gpt-6-astra,  effort: low }
   cc-worker:   { agent: coding-agent }               # モデル・effortはエージェント定義に従う(Opus 5.5 / high)
   # 調査・レビュー系
   # 調査の既定はCodex（team-researcher名指し）。CCへ切り替えるのは
   # (a)人間がCC委託を指示した場合 (b)Codexのusage limitで使えない場合 のみ。
-  research:    { cli: codex, model: gpt-6-luna, effort: max, parallel_max: 6 }
+  research:    { cli: codex, model: gpt-6-sol, effort: high, parallel_max: 6 }
   cc-research: { agent: researcher, enumerate: haiku, semantic: sonnet, parallel_max: 6 }  # フォールバック
-  review:       { agent: reviewer }                  # Opus 5.5 / high CCレビュアー(直接実行モードのフォールバック)
+  review:       { agent: reviewer }                  # Opus 5.5 / medium CCレビュアー(直接実行モードのフォールバック)
   # プラン曖昧さ測定プローブ（[3]初回ラウンド。正本=team-plan-probeスキル。測定器なので下位モデル固定）
   plan-probe:       { agent: plan-probe }                             # CC Orchestrator用(haiku)
   # Codexレビュアーの正本。gate1(Codex実装分の独立レビュー)とcc-worker実装分のレビューの両方で使う。
-  # effort=medium明示によりプロトコル§1の段階制(high→medium)は無効化され全ラウンドmedium固定。
-  codex-review: { cli: codex, model: gpt-6-sol, effort: medium }
+  # effort=high明示によりプロトコル§1の段階制(high→medium)は無効化され全ラウンドhigh固定。
+  codex-review: { cli: codex, model: gpt-6-sol, effort: high }
 
   # 執行系（[4]〜[6]の進行管理を担うexecutorサブエージェント。Fable温存の要）
   # **Orchestratorが Fable のときだけ使う**（Opus等が指揮する場合は委譲せず直接実行）
@@ -31,15 +31,15 @@ routing:
 # `cc:`    = Claude Code をサブスク用ゲートウェイ経由で呼ぶ（--agent <cc> --model <model> --effort <effort>）
 # 経路未定義は親へ返す。native実行をroutingのCLIへ暗黙フォールバックしない。
 codex_routing:
-  express:      { agent: team-worker }                              # luna / max（team-worker 共用）
+  express:      { agent: team-worker }                              # sol / high（team-worker 共用）
   worker:       { agent: team-worker, parallel_max: 5 }
   hard-worker:  { agent: team-hardworker, parallel_max: 5 }
   #hard-worker:  { cc: coding-agent, model: opus, effort: xhigh }
-  cc-worker:    { cc: coding-agent, model: opus, effort: xhigh }    # 環境制約レーンも同じ CC レーン
+  cc-worker:    { cc: coding-agent, model: claude-opus-5-5, effort: high }    # 環境制約レーンも同じ CC レーン
   research:     { agent: researcher, parallel_max: 6 }
-  review:       { cc: reviewer, model: opus, effort: high }         # Codex 実装分のクロスベンダーレビュー
+  review:       { cc: reviewer, model: claude-opus-5-5, effort: medium }  # Codex 実装分のクロスベンダーレビュー
   codex-review: { agent: reviewer }                                 # CC 実装分のレビュー
-  plan-review:  { cc: reviewer, model: opus, effort: xhigh }         # 分解文書レビュー(team-plan-reviewer 名指し)
+  plan-review:  { cc: reviewer, model: claude-opus-5-5, effort: xhigh }  # 分解文書レビュー(team-plan-reviewer 名指し)
   plan-probe:   { agent: plan-probe }                               # luna / low
   # executor は Codex 時は使わない（直接実行モード。完了ゲートは Orchestrator 自身）
 
