@@ -6,7 +6,7 @@
 
 routing:
   # 実装系（原型記事のPareto配分。slug変更時はここだけ直す）
-  express:     { cli: codex, model: gpt-6-sol, effort: high }
+  express:     { cli: codex, model: gpt-6-luna, effort: xhigh }
   worker:      { cli: codex, model: gpt-6-sol, effort: high, parallel_max: 5 }
   hard-worker: { agent: coding-agent }               # 難度レーン。モデル・effortはエージェント定義に従う(Opus 5.5 / high)
   cc-worker:   { agent: coding-agent }               # モデル・effortはエージェント定義に従う(Opus 5.5 / high)
@@ -14,6 +14,8 @@ routing:
   # 調査の既定はCodex（team-researcher名指し）。CCへ切り替えるのは
   # (a)人間がCC委託を指示した場合 (b)Codexのusage limitで使えない場合 のみ。
   research:    { cli: codex, model: gpt-6-sol, effort: high, parallel_max: 6 }
+  # 重要領域の重ね調査専用（dispatch「調査結果の採用」）。Solと別モデルにして見落としの相関を下げる。試用中(2026-09-23〜)
+  research-overlap: { cli: codex, model: gpt-6-luna, effort: xhigh }
   cc-research: { agent: researcher, enumerate: haiku, semantic: sonnet, parallel_max: 6 }  # フォールバック
   review:       { agent: reviewer }                  # Opus 5.5 / medium CCレビュアー(直接実行モードのフォールバック)
   # プラン曖昧さ測定プローブ（[3]初回ラウンド。正本=team-plan-probeスキル。測定器なので下位モデル固定）
@@ -36,6 +38,7 @@ codex_routing:
   hard-worker:  { cc: coding-agent, model: claude-opus-5-5, effort: high }    # 難度レーン
   cc-worker:    { cc: coding-agent, model: claude-opus-5-5, effort: high }    # 環境制約レーンも同じ CC レーン
   research:     { agent: researcher, parallel_max: 6 }
+  # research-overlap は未定義（Codex指揮時は使わない。使うならLuna用の調査tomlを追加する）
   review:       { cc: reviewer, model: claude-opus-5-5, effort: medium }  # Codex 実装分のクロスベンダーレビュー
   codex-review: { agent: reviewer }                                 # CC 実装分のレビュー
   plan-review:  { cc: reviewer, model: claude-opus-5-5, effort: xhigh }  # 分解文書レビュー(team-plan-reviewer 名指し)
