@@ -25,10 +25,6 @@ routing:
   # 執行系（[4]〜[6]の進行管理を担うexecutorサブエージェント。Fable温存の要）
   # **Orchestratorが Fable のときだけ使う**（Opus等が指揮する場合は委譲せず直接実行）
   executor:    { agent: executor }                 # モデル・effortはエージェント定義に従う(Opus 5.5 / xhigh)
-  # 雑務系（ノイジーな中間出力を吸収してOrchestratorのコンテキストを守る）
-  # 原則は routing.worker（Codex）へ委譲。Codex環境起因で不可の雑務のみ cc-chore へ
-  # （既定workerの実行権限・ツールで不可の場合。検証証拠の基準はdispatchでベンダー共通）
-  cc-chore:    { agent: general-purpose, model: haiku, effort: xhigh }
 
 # Orchestrator が Codex のときのルーティング。運用手順の正本は ~/.agents/codex/skills/agent-team/SKILL.md。
 # `agent:` = Codex custom agent 名（~/.agents/codex/agents/<name>.toml。model/effort は toml が正本）
@@ -45,7 +41,7 @@ codex_routing:
   codex-review: { agent: reviewer }                                 # CC 実装分のレビュー
   plan-review:  { cc: reviewer, model: opus, effort: xhigh }         # 分解文書レビュー(team-plan-reviewer 名指し)
   plan-probe:   { agent: plan-probe }                               # luna / low
-  # executor / cc-chore は Codex 時は使わない（直接実行モード。完了ゲートは Orchestrator 自身）
+  # executor は Codex 時は使わない（直接実行モード。完了ゲートは Orchestrator 自身）
 
 limits:
   fix_rounds_express: 2

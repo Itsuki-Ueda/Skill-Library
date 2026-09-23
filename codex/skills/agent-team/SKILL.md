@@ -14,7 +14,7 @@ description: "調査・設計判断を伴う機能追加、不具合修正、リ
 - `cc:` はCCゲートウェイへ解決済みyamlのmodel/effortを渡す。別経路のroutingへ暗黙フォールバックしない。経路未定義は親へ返す。
 - 事前定義を使い、毎dispatchの設定照合・人間確認は行わない。設定変更時に対応経路と定義を確認する。黙ったagent代替は禁止（`~/.agents/codex/AGENTS.md`）。
 - nativeは同じagentへ追加入力して継続する。CCゲートウェイは新規呼び出しなので契約・前回記録・前回版からの差分を同梱する。
-- 入れ子の `codex exec` は使わない。executor/cc-choreへ委譲せず、親が進行管理・完了ゲート・commitを担当する。
+- 入れ子の `codex exec` は使わない。executorへ委譲せず、親が進行管理・完了ゲート・commitを担当する。
 
 ## 担当
 | 対象 | codex_routingの担当 |
