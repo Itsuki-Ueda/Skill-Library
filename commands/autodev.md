@@ -13,7 +13,7 @@ argument-hint: "<タスク内容> [light|full] [codex]"
 - プロジェクト固有値（ビルドゲートコマンド・gh 認証切替など）は CLAUDE.md・メモリ・package.json から解決。
 - **レビュー粒度は CC・Codex で対称**（各ラウンド 1 回レビューして指摘を返すだけ）。修正は autodev が一元管理。
   autodev 内では `/cxplan`・`/cxloop` の自己完結ループは使わない（単体使用時のみ自己完結）。
-- **CC レビューは `reviewer` エージェント定義**（`~/.agents/agents/reviewer.md`、model: opus・読み取り専用。
+- **CC レビューは `reviewer` エージェント定義**（`~/.agents/agents/reviewer.md`、model: claude-opus-5-5・effort: high・読み取り専用。
   VERDICT 形式・P0〜P3 タグ・証拠必須・除外規則・再レビュー2軸は定義側が正本——呼び出し時はモードと対象だけ渡す）。
   定義が使えない場合は `Agent`(general-purpose, model: opus) に同等規律をプロンプト先頭に付与して代替。
 - ☑ この工程の確認: codex-protocol.md を Read した / プロジェクト固有値を解決した / git・gh 前提を満たす。

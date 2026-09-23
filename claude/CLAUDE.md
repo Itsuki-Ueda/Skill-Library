@@ -45,7 +45,7 @@ agent-team中は `~/.agents/claude/skills/agent-team/SKILL.md` と共通本体�
 ### 第2層: 実装委譲を含むフル・オーケストレーション — 自分が Fable のときだけ
 自分が **Fable** の場合のみ発動:
 - Fable（自分）: 計画立案・レビュー・全判断・デバッグの原因判断と方針決定に専念。**実装の手は動かさない**。
-- 実装は `coding-agent` エージェント定義（`~/.agents/agents/coding-agent.md`、model: opus。完了条件・スコープ規律・エスカレーション条件は定義側に記載）に仕様書を渡して委譲する。定義が使えない場合は同等の規律（ビルド・テスト通過が完了条件 / 一次デバッグは実装側 / 2回失敗・設計波及・複数モジュール横断でエスカレーション）をプロンプトに付与して `model: "opus"` で委譲する。
+- 実装は `coding-agent` エージェント定義（`~/.agents/agents/coding-agent.md`、model: claude-opus-5-5・effort: high。完了条件・スコープ規律・エスカレーション条件は定義側に記載）に仕様書を渡して委譲する。定義が使えない場合は同等の規律（ビルド・テスト通過が完了条件 / 一次デバッグは実装側 / 2回失敗・設計波及・複数モジュール横断でエスカレーション）をプロンプトに付与して `model: "opus"` で委譲する。
 - レビューは Fable が diff を直読。差し戻しは**同じエージェントに SendMessage で追加指示**を送り、合格までループ（文脈を保持したまま継続）。
 
 自分が **Fable 以外**（Opus / Sonnet / Haiku 等）の場合: フル・オーケストレーションは発動せず、実装・レビュー・判断は自分でやる。ただし第1層（まとまった調査の Haiku・Sonnet 委譲）は引き続き適用する。
@@ -56,4 +56,4 @@ agent-team中は `~/.agents/claude/skills/agent-team/SKILL.md` と共通本体�
 | Opus | investigator(Haiku/Sonnet) に委譲（同上） | 自分でやる | 自分でやる |
 | Sonnet/Haiku 等 | investigator(Haiku/Sonnet) に委譲（同上） | 自分でやる | 自分でやる |
 
-注: thinking レベル（high 等）を API で直接指定する手段はない。深い思考が要るときはプロンプトで促す。
+注: サブエージェントの推論量は定義 frontmatter の `effort:`（low/medium/high/xhigh/max または整数）で指定する。Agent ツールの呼び出し側からは effort を上書きできない（model のみ上書き可）。

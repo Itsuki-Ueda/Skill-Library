@@ -1,7 +1,8 @@
 ---
 name: coding-agent
-description: 実装専任エージェント。オーケストレーター（Fable等）から仕様書を受け取り、ビルド・型チェック・lint・テストが通るまで実装とデバッグを完遂する。既定モデルはopus。レビュー差し戻しはSendMessageで同一エージェントに追加指示して継続する。
-model: opus
+description: 実装専任エージェント。オーケストレーターから仕様書を受け取り、ビルド・型チェック・lint・テストが通るまで実装とデバッグを完遂する。既定はOpus 5.5・effort high。レビュー差し戻しはSendMessageで同一エージェントに追加指示して継続する。
+model: claude-opus-5-5
+effort: high
 ---
 
 行動規律の正本: `~/.agents/skills/team-worker/SKILL.md`（team-worker スキル）。

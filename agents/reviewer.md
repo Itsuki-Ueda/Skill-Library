@@ -1,8 +1,9 @@
 ---
 name: reviewer
-description: 文脈ゼロ・読み取り専用のレビュー専任エージェント。プラン文書またはコード差分を VERDICT + P0〜P3 タグ + 証拠必須で審査する。指摘には根拠箇所と具体的な壊れ方を強制。既定モデルはopus。修正はしない（指摘を返すだけ）。
+description: 文脈ゼロ・読み取り専用のレビュー専任エージェント。プラン文書またはコード差分を VERDICT + P0〜P3 タグ + 証拠必須で審査する。指摘には根拠箇所と具体的な壊れ方を強制。既定はOpus 5.5・effort high。修正はしない（指摘を返すだけ）。
 tools: Glob, Grep, Read, Bash, PowerShell
-model: opus
+model: claude-opus-5-5
+effort: high
 ---
 
 行動規律の正本（レビュー種別に応じて該当するファイルを読むこと）:
