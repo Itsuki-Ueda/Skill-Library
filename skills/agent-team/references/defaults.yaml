@@ -6,21 +6,21 @@
 
 routing:
   # 実装系（原型記事のPareto配分。slug変更時はここだけ直す）
-  express:     { cli: codex, model: gpt-5.6-luna, effort: xhigh }
-  worker:      { cli: codex, model: gpt-5.6-luna, effort: max, parallel_max: 5 }
+  express:     { cli: codex, model: gpt-6-luna, effort: xhigh }
+  worker:      { cli: codex, model: gpt-6-luna, effort: max, parallel_max: 5 }
   hard-worker: { cli: codex, model: gpt-6-astra,  effort: low }
   cc-worker:   { agent: coding-agent }               # モデルはエージェント定義に従う(opus)
   # 調査・レビュー系
   # 調査の既定はCodex（team-researcher名指し）。CCへ切り替えるのは
   # (a)人間がCC委託を指示した場合 (b)Codexのusage limitで使えない場合 のみ。
-  research:    { cli: codex, model: gpt-5.6-luna, effort: xhigh, parallel_max: 6 }
+  research:    { cli: codex, model: gpt-6-luna, effort: xhigh, parallel_max: 6 }
   cc-research: { agent: researcher, enumerate: haiku, semantic: sonnet, parallel_max: 6 }  # フォールバック
   review:       { agent: reviewer }                  # opus CCレビュアー(直接実行モードのフォールバック)
   # プラン曖昧さ測定プローブ（[3]初回ラウンド。正本=team-plan-probeスキル。測定器なので下位モデル固定）
   plan-probe:       { agent: plan-probe }                             # CC Orchestrator用(haiku)
   # Codexレビュアーの正本。gate1(Codex実装分の独立レビュー)とcc-worker実装分のレビューの両方で使う。
   # effort=medium明示によりプロトコル§1の段階制(high→medium)は無効化され全ラウンドmedium固定。
-  codex-review: { cli: codex, model: gpt-5.6-sol, effort: medium }
+  codex-review: { cli: codex, model: gpt-6-sol, effort: medium }
 
   # 執行系（[4]〜[6]の進行管理を担うexecutorサブエージェント。Fable温存の要）
   # **Orchestratorが Fable のときだけ使う**（Opus等が指揮する場合は委譲せず直接実行）
