@@ -93,7 +93,8 @@ if [ -n "$serve" ]; then
   server_pid=$!
   ready=
   for _ in $(seq 1 "$limit"); do
-    [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 2 "$url")" = 200 ] && { ready=1; break; }
+    # 2xx/3xx なら起動済み（ログイン画面へのリダイレクト等は撮影時にブラウザが辿る）
+    case $(curl -s -o /dev/null -w '%{http_code}' --max-time 2 "$url") in 2??|3??) ready=1; break ;; esac
     kill -0 "$server_pid" 2>/dev/null || break
     sleep 1
   done

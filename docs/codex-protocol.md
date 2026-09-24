@@ -60,6 +60,18 @@ codex exec resume <session id> -o <out> -c 'model=<model>' -c 'model_reasoning_e
   （`codex exec resume ... -s ...` は `error: unexpected argument '-s'` で失敗する）。
 - 実装委託の規律は §13 を必ず併読。
 
+### (e) restricted sandbox（workspace-write）の既知の制限（Windows・2026-09-24 実測、codex-cli 0.156.1）
+症状 → 対処。準備（依存の取得・復元など通信やユーザー領域が要るもの）は親が dispatch 前に済ませる。
+- 作業場所内の `.agents/`・`.git` への書き込みが拒否される → 成果物（撮影画像等）は `%TEMP%` 配下へ出す（`%TEMP%` は書込可）。
+- 外部ネットワークに出られない（localhost は可）→ 依存の取得（`npm ci` / `dotnet restore` 等）は親が行う。外部サービスのデータが要る画面確認は親が行う。
+- `%USERPROFILE%` 直下の一覧と、`%APPDATA%`・`%LOCALAPPDATA%`（Temp を除く）の読み取りが拒否される。その結果:
+  - ユーザー単位インストールのツール（`%LOCALAPPDATA%\Programs` 配下の Python 等）が見つからない → Program Files 配下のツールを使うか、親が実行する。
+  - 古い esbuild 系の設定読込（例: Vite 7）が親フォルダを辿って `Cannot read directory "../../..": Access is denied` で止まる → 依存をロックファイルどおりに入れ直す（Vite 8 系では再現しない）。
+  - `dotnet test` / `dotnet build` の暗黙復元が `%APPDATA%\NuGet\NuGet.Config` を読めず失敗する → 親が `dotnet restore` を済ませ、worker は `--no-restore` を付ける。
+  - WPF 等 Windows デスクトップのビルドが `%LOCALAPPDATA%\Microsoft SDKs` を読めず `MSB4184` で失敗する → そのビルドは親が実行する（ライブラリ・テストプロジェクト単体は `--no-restore` で通る）。
+- sandbox 内で起動したプロセスは、sandbox 外の権限では止められない（アクセス拒否）。sandbox 内でも `taskkill /T` と WMI での子孫探索は効かない → 同じ sandbox から `Stop-Process -Id <PID>` で止める（PID は `netstat -ano`）。開発サーバは常駐させず、起動から停止まで行うスクリプト（agent-team の `capture.sh`）に任せる。
+- sandbox 内で Chromium 系ブラウザを起動すると子プロセスが落ちる → `--no-sandbox` を付ける（開くのは localhost のみ）。
+
 ## 4. timeout
 - 全呼び出し **600000ms**（PowerShell ツール上限）。高 effort のレビューは 1 回 2〜5 分が実測（gpt-5.5 xhigh 時）。300s では不足する。
 - 実装形（3d）はこの上限を超え得るため timeout に依存せず `run_in_background` を使う（3d 参照）。

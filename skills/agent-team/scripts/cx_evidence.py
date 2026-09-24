@@ -21,9 +21,11 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 
-# 既定の検証判定: 実行コマンドが runner で始まり、かつ検証語を含む（rg の検索語などを誤検出しない）
-RUNNER = re.compile(r"^\s*(?:&\s*)?(?:npx|npm|pnpm|yarn|bunx?|pytest|python3?|tsc|eslint|vitest|jest|cargo|go|dotnet|make|bash)\b")
-KEYWORD = re.compile(r"\b(?:test|vitest|jest|pytest|tsc|eslint|typecheck|lint|build|check)\b|capture\.sh")
+# 既定の検証判定: いずれかの文が runner で始まり、かつ検証語を含む（rg の検索語などを誤検出しない）
+RUNNER = re.compile(r"(?:^|[;|]|&&)\s*(?:&\s*)?(?:npx|npm|pnpm|yarn|bunx?|pytest|python3?|tsc|eslint|vitest|jest|cargo|go|dotnet|make|bash)\b")
+KEYWORD = re.compile(r"\b(?:test|vitest|jest|pytest|tsc|eslint|typecheck|lint|build|check|verify)\b|capture\.sh")
+# 複合コマンド（; やパイプ、リダイレクト、$LASTEXITCODE の退避）は、記録上の終了コードが検証の成否と一致しない
+COMPOUND = re.compile(r";|(?<![|&])\|(?![|&])|\*?>|\$LASTEXITCODE|\$\?")
 
 
 def find_rollout(key):
@@ -115,23 +117,35 @@ def main():
     print("|---|---|---|---|---|---|")
     custom = re.compile(a.match) if a.match else None
 
-    def is_verify_cmd(text):
-        return bool(custom.search(text)) if custom else bool(RUNNER.search(text) and KEYWORD.search(text))
+    def unquoted(text):
+        # 引用符の中（rg の検索語など）の | ; を区切りと誤認しないよう、中身を消してから構造を見る
+        return re.sub(r"'[^']*'|\"[^\"]*\"", "''", text)
 
-    verify_after, verify_fail = 0, 0
+    def is_verify_cmd(text):
+        return bool(custom.search(text)) if custom else bool(RUNNER.search(unquoted(text)) and KEYWORD.search(text))
+
+    verify_after, verify_fail, verify_compound = 0, 0, 0
     for i, (ts, it) in enumerate(cmds, 1):
         text = shell_text(it.get("command"))
         dur = it.get("duration") or {}
         secs = dur.get("secs", 0) + dur.get("nanos", 0) / 1e9
         after = "後" if (last_edit is None or parse(ts) > last_edit) else "変更前"
         is_verify = is_verify_cmd(text)
+        compound = is_verify and bool(COMPOUND.search(unquoted(text)))
         if is_verify and after == "後":
             verify_after += 1
-            verify_fail += it.get("exit_code") != 0
+            if compound:
+                verify_compound += 1
+            else:
+                verify_fail += it.get("exit_code") != 0
+        exit_col = f"{it.get('exit_code')}※複合" if compound else f"{it.get('exit_code')}"
         one = text.replace("\n", " ").replace("|", "\\|")
-        print(f"| {i} | {local(ts)} | {it.get('exit_code')} | {secs:.1f} | {after} | `{one[:140]}` |")
+        print(f"| {i} | {local(ts)} | {exit_col} | {secs:.1f} | {after} | `{one[:140]}` |")
     print()
-    print(f"最終変更より後の検証コマンド: {verify_after}件（exit≠0: {verify_fail}件）")
+    print(f"最終変更より後の検証コマンド: {verify_after}件（exit≠0: {verify_fail}件、"
+          f"複合で終了コードを証拠にできないもの: {verify_compound}件）")
+    if verify_compound:
+        print("※複合: ; やパイプ・リダイレクト・終了コードの退避を含み、記録上の exit が検証の成否と一致しない。出力を読むか親が再実行する。")
     for i, (ts, it) in enumerate(cmds, 1):
         text = shell_text(it.get("command"))
         if not (is_verify_cmd(text) or it.get("exit_code") != 0):
