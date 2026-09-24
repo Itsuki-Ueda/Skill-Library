@@ -84,14 +84,16 @@ def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
 
-    meta, ctx, cmds, edits = {}, {}, [], []
+    meta, ctx, cmds, edits, turns = {}, {}, [], [], []
     with open(find_rollout(a.session), encoding="utf-8", errors="replace") as f:
         for line in f:
             o = json.loads(line)
             t, p = o.get("type"), o.get("payload") or {}
             if t == "session_meta":
                 meta = p
-            elif t == "turn_context" and not ctx:
+            elif t == "turn_context":
+                # resume するとターンごとに設定が変わる（sandbox は引き継がれない）ので全ターン分を残す
+                turns.append((o["timestamp"], p))
                 ctx = p
             elif t == "event_msg" and p.get("type") == "item_completed":
                 it = p.get("item") or {}
@@ -104,10 +106,16 @@ def main():
     if a.worktree:
         changes += worktree_changes(a.worktree)
     last_edit = max((parse(ts) for ts, _ in changes), default=None)
-    sandbox = (ctx.get("sandbox_policy") or {}).get("type") if isinstance(ctx.get("sandbox_policy"), dict) else ctx.get("sandbox_policy")
+    def sandbox_of(c):
+        sp = c.get("sandbox_policy")
+        return (sp or {}).get("type") if isinstance(sp, dict) else sp
+
+    sandbox = sandbox_of(ctx)
     print(f"session: {meta.get('id', a.session)}  cli: {meta.get('cli_version', '?')}")
     print(f"cwd: {meta.get('cwd', '?')}  base commit: {(meta.get('git') or {}).get('commit_hash', '?')}")
-    print(f"model: {ctx.get('model', '?')}  effort: {ctx.get('effort', '?')}  sandbox: {sandbox or '?'}")
+    print(f"model: {ctx.get('model', '?')}  effort: {ctx.get('effort', '?')}  sandbox: {sandbox or '?'}  （最後のターン）")
+    if len(turns) > 1:
+        print("turns: " + " / ".join(f"{local(ts)} {sandbox_of(c) or '?'}" for ts, c in turns))
     files = sorted({p for _, p in changes})
     print(f"changed files ({len(files)}): " + (", ".join(files) if files else "なし"))
     last = last_edit.astimezone().strftime("%H:%M:%S") if last_edit else "なし"

@@ -5,7 +5,9 @@
 #   cx-run.sh impl   --cwd <worktree> --prompt <file> --out <file> --model <m> --effort <e>   # §3d 実装
 #   cx-run.sh ask    --prompt <file> --out <file> --model <m> --effort <e> [--cwd <dir>]      # §3a 調査・文書レビュー（read-only）
 #   cx-run.sh review --cwd <repo> --target "--base origin/main" --out <file> --model <m> --effort <e>  # §3b 差分レビュー
-#   cx-run.sh resume --session <id> --prompt <file> --out <file> --model <m> --effort <e> [--cwd <worktree>]  # §3c（--cwd で実装の差し戻し）
+#   cx-run.sh resume --session <id> --prompt <file> --out <file> --model <m> --effort <e> [--cwd <worktree>]  # §3c
+#     --cwd あり: 実装の差し戻し（workspace-write）。--cwd なし: レビュー・調査の再開（read-only。対象リポジトリ内から呼ぶ）
+#     resume は元の sandbox を引き継がない（指定しないと config.toml の既定で動く）ので、どちらも毎回明示する。
 #
 # 生成物: <out>（最終メッセージ）/ <out>.err（ヘッダ・作業ログ）/ <out>.exit（終了コード）。
 # 完了時に1行サマリ（exit / session / out サイズ）を出す。長時間になり得るので run_in_background で起動する。
@@ -40,8 +42,8 @@ case $kind in
     args=(exec -C "$cwd" -o "$out" review "${tgt[@]}" "${cfg[@]}") ;;
   resume)
     need "$session" --session; need "$prompt" --prompt
-    args=(exec)
-    [ -n "$cwd" ] && args+=(-s workspace-write -C "$cwd")   # §3d: -s/-C は exec と resume の間
+    args=(exec)   # §3d: -s/-C は exec と resume の間
+    if [ -n "$cwd" ]; then args+=(-s workspace-write -C "$cwd"); else args+=(-s read-only); fi
     args+=(resume "$session" -o "$out" "${cfg[@]}" -); stdin=$prompt ;;
   *) echo "unknown kind: $kind" >&2; exit 2 ;;
 esac

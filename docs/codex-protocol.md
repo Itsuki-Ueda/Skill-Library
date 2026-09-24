@@ -42,8 +42,11 @@ codex exec -o <out> review <--uncommitted | --base origin/main | --commit <sha>>
 ### (c) 再レビュー（resume）
 `resume` はプロンプトを**引数で渡してよい**（stdin 待ちは起きない）。`-o` も併用する。
 ```
-codex exec resume <session id> -o <out> -c 'model=<model>' -c 'model_reasoning_effort=<effort>' "<プロンプト>"
+codex exec -s read-only resume <session id> -o <out> -c 'model=<model>' -c 'model_reasoning_effort=<effort>' "<プロンプト>"
 ```
+- **`-s read-only` を必ず付ける**（`exec` と `resume` の間）。resume は元のセッションの sandbox を引き継がず、
+  指定しないと `~/.codex/config.toml` の既定（workspace-write＝書き込み可）で動く（2026-09-24 実測、0.156.1）。
+- 対象リポジトリの中から呼ぶ（git リポジトリの外では `Not inside a trusted directory` で拒否される）。
 
 ### (d) 実装（サンドボックス内で Codex に書かせる）
 実装指示（§8c 雛形＋仕様全文）は **stdin** で渡す。sandbox は必ず `workspace-write`、対象 worktree に `-C` で固定。
