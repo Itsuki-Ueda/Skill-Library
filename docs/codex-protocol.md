@@ -29,13 +29,14 @@ Codex コマンドの具体構文はこのファイルにだけ書く。各ス�
 ### (a) 文書レビュー（初回）
 プロンプトは **stdin** で渡す（引数で渡すと stdin 待ちでハングする＝実証済み）。
 ```
-"<プロンプト全文>" | codex exec -o <out> -c 'model=<model>' -c 'model_reasoning_effort=<effort>'
+"<プロンプト全文>" | codex exec -s read-only -o <out> -c 'model=<model>' -c 'model_reasoning_effort=<effort>'
 ```
+- レビュー・調査の形（a〜c）は必ず `-s read-only` を付ける。指定しないと `~/.codex/config.toml` の既定（workspace-write＝書き込み可）で動き、レビュアーが対象を書き換えられる。
 
 ### (b) 差分レビュー（初回）
 `review` は stdin 待ちなし。**カスタムプロンプト不可**（組み込みレビュー指示で動く）。
 ```
-codex exec -o <out> review <--uncommitted | --base origin/main | --commit <sha>> -c 'model=<model>' -c 'model_reasoning_effort=<effort>'
+codex exec -s read-only -o <out> review <--uncommitted | --base origin/main | --commit <sha>> -c 'model=<model>' -c 'model_reasoning_effort=<effort>'
 ```
 （トップレベル `codex review` には `-o` が無いので `exec` 配下を使う）
 

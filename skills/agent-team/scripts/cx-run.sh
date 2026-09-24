@@ -39,7 +39,7 @@ case $kind in
   review)
     need "$cwd" --cwd; need "$target" --target
     read -ra tgt <<< "$target"
-    args=(exec -C "$cwd" -o "$out" review "${tgt[@]}" "${cfg[@]}") ;;
+    args=(exec -s read-only -C "$cwd" -o "$out" review "${tgt[@]}" "${cfg[@]}") ;;
   resume)
     need "$session" --session; need "$prompt" --prompt
     args=(exec)   # §3d: -s/-C は exec と resume の間
