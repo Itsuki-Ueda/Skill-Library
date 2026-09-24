@@ -54,6 +54,7 @@ Git状態（`main` ＋ 進行中の作業だけが存在する状態）を維持
 
 - ブランチ命名・PR状態・マージ方式・closeoutは本スキルを優先し、汎用GitHubスキルの既定値で上書きしない。
 - 「PR作成」までなら draft を既定とし、「マージまで」の明示依頼では ready PR としてCI・保護ルールを満たしてからマージする。
+  CIの対象外（`.agents/` だけの変更など）で**チェックが1件も付かないPR**はCI待ちをしない。`gh pr checks` は「no checks reported」と表示して終了コード1を返すが、失敗ではない。保護ルールだけ確認してマージする。
 - push前に `HEAD`、stage対象、`origin`、送信先owner/repository、base/headを確認する。送信先が依頼内容から特定できなければpushしない。
 
 ## 2. ブランチのライフサイクル
