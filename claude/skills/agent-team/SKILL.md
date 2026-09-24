@@ -42,7 +42,8 @@ Fable親のexecutor運用では、独立性はCodexレビュー、別ベンダ�
 
 ## 検証・縮退
 - 完了ゲートはexecutor運用ではexecutor自身が実行し、直接進行管理では親が実行する。元の実行記録を親が観測できない場合は未検証とし、親側で再実行する。
-- CLI workerの検証は、Codexのセッション記録を元記録として `python ~/.agents/skills/agent-team/scripts/cx_evidence.py <session id> --worktree <作業場所>` で確認する。契約のVerificationのコマンドが「最終変更より後」に終了コード0で記録されていれば、親は再実行しない。記録に無いもの・「変更前」のもの・sandboxで実行できなかったものだけ親が実行する。親が集約ファイル登録などで作業場所を変えた後は、影響する検証を親が実行する。
+- CLI workerの検証は、Codexのセッション記録を元記録として `python ~/.agents/skills/agent-team/scripts/cx_evidence.py <session id> --worktree <作業場所>` で確認する。契約のVerificationのコマンドが「最終変更より後」に終了コード0で記録されていれば、親は再実行しない。記録に無いもの・「変更前」のもの・sandboxで実行できなかったものだけ親が実行する。親が集約ファイル登録などで作業場所を変えた後は、影響する検証を親が実行する。workerの撮影（`capture.sh`）も同じ記録で「最終変更より後」かを確かめ、PNGはReadで開いて見る。
+- sandbox内のworkerが起動したプロセスは親の権限では止められない（アクセス拒否）。開発サーバのポートが塞がったまま等の取り残しを見つけたら、Codexに `Stop-Process -Id <PID>` を実行させて止める（PIDは `netstat -ano` で特定する）。
 - CLI restricted sandboxで不可の環境準備・Git書込・ブラウザ等は、実行可能な親側経路が担当する。ベンダー名だけで可否を判断しない。
 - 調査のCLI usage limitは再試行せずrouting.cc-researchへ（enumerate/semanticの定義を使う）。人間がCC調査を指定した場合も同じ経路。
 - 実装のusage limitは親へ戻して環境レーン等への再割当を判断する。レビューの利用不可は共通の縮退規則で扱い、未達を通常doneにしない。

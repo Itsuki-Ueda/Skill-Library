@@ -34,29 +34,57 @@ if [ -z "$browser" ]; then
 fi
 [ -n "$browser" ] || { echo "no Chromium-based browser found (set BROWSER_BIN)" >&2; exit 2; }
 
-mkdir -p "$(dirname "$out")"
+[ -n "$win" ] && out=$(cygpath -u "$out")
+# Codex の sandbox では祖先フォルダ（ユーザーフォルダ直下など）の一覧が拒否され mkdir -p が失敗するので、
+# 存在する最も深い祖先へ移動してから、残りだけを相対で作る
+dir=$(dirname "$out") rest=
+while [ ! -d "$dir" ]; do rest="$(basename "$dir")${rest:+/$rest}"; dir=$(dirname "$dir"); done
+[ -z "$rest" ] || (cd "$dir" && mkdir -p "$rest") || { echo "cannot create output directory for $out" >&2; exit 2; }
 profile=$(mktemp -d "${TMPDIR:-/tmp}/capture-profile.XXXXXX")
-server_pid=
+server_pid= port=
+
+# 指定ポートで待ち受けているプロセスの PID。
+# Codex の sandbox 内では taskkill /T も WMI での子孫探索も効かないが、netstat と PID 指定の Stop-Process は効く。
+# sandbox 内で起動したプロセスは sandbox 外（親）の権限では止められないので、サーバはポートで特定してここで止める。
+listeners() {
+  if [ -n "$win" ]; then
+    netstat -ano | tr -d '\r' | awk -v p=":$port" '$1=="TCP" && $4=="LISTENING" && substr($2, length($2)-length(p)+1)==p {print $5}' | sort -u
+  else
+    lsof -ti "tcp:$port" -sTCP:LISTEN 2>/dev/null
+  fi
+}
+stop_pids() {
+  [ -n "$1" ] || return 0
+  if [ -n "$win" ]; then
+    powershell.exe -NoProfile -Command "Stop-Process -Id $(echo $1 | tr ' ' ',') -Force -ErrorAction SilentlyContinue" >/dev/null 2>&1
+  else
+    kill -TERM $1 2>/dev/null
+  fi
+}
 
 cleanup() {
-  # ブラウザの取り残し（固まった子プロセス）を、専用プロファイルのパスで特定して止める
+  # ブラウザの取り残し（固まった子プロセス）を、専用プロファイルのパスで特定して止める（sandbox 外で有効）
   if [ -n "$win" ]; then
     powershell.exe -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { \$_.ProcessId -ne \$PID -and \$_.CommandLine -like '*$(basename "$profile")*' } | ForEach-Object { Stop-Process -Id \$_.ProcessId -Force -ErrorAction SilentlyContinue }" >/dev/null 2>&1
   else
     pkill -f "$profile" 2>/dev/null
   fi
   if [ -n "$server_pid" ]; then
-    if [ -n "$win" ]; then
-      taskkill //T //F //PID "$(cat "/proc/$server_pid/winpid" 2>/dev/null || echo "$server_pid")" >/dev/null 2>&1
-    else
-      kill -TERM -- "-$server_pid" 2>/dev/null
-    fi
+    [ -n "$win" ] || kill -TERM -- "-$server_pid" 2>/dev/null
+    for _ in 1 2 3 4 5; do
+      pids=$(listeners); [ -z "$pids" ] && break
+      stop_pids "$pids"; sleep 1
+    done
+    [ -z "$(listeners)" ] || echo "warning: server still listening on port $port (stop it from the same sandbox)" >&2
   fi
   rm -rf "$profile"
 }
 trap cleanup EXIT
 
 if [ -n "$serve" ]; then
+  port=$(printf '%s' "$url" | sed -nE 's#^[a-zA-Z]+://[^/:]+:([0-9]+).*#\1#p')
+  [ -n "$port" ] || { echo "--serve requires an explicit port in --url" >&2; exit 2; }
+  [ -z "$(listeners)" ] || { echo "port $port is already in use; refusing to start (would stop someone else's server)" >&2; exit 2; }
   if [ -n "$win" ]; then
     (cd "$serve_cwd" && exec bash -c "$serve") > "$out.serve.log" 2>&1 &
   else

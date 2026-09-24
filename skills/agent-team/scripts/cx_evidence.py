@@ -22,8 +22,8 @@ import sys
 from datetime import datetime, timezone
 
 # 既定の検証判定: 実行コマンドが runner で始まり、かつ検証語を含む（rg の検索語などを誤検出しない）
-RUNNER = re.compile(r"^\s*(?:&\s*)?(?:npx|npm|pnpm|yarn|bunx?|pytest|python3?|tsc|eslint|vitest|jest|cargo|go|dotnet|make)\b")
-KEYWORD = re.compile(r"\b(?:test|vitest|jest|pytest|tsc|eslint|typecheck|lint|build|check)\b")
+RUNNER = re.compile(r"^\s*(?:&\s*)?(?:npx|npm|pnpm|yarn|bunx?|pytest|python3?|tsc|eslint|vitest|jest|cargo|go|dotnet|make|bash)\b")
+KEYWORD = re.compile(r"\b(?:test|vitest|jest|pytest|tsc|eslint|typecheck|lint|build|check)\b|capture\.sh")
 
 
 def find_rollout(key):
