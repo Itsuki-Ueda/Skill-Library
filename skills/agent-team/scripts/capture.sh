@@ -3,11 +3,29 @@
 #
 #   capture.sh --url <url> --out <png> [--serve "<開発サーバ起動コマンド>" --serve-cwd <dir>]
 #              [--size 1280,800] [--wait-ms 10000] [--timeout 120] [--no-browser-sandbox]
+#   capture.sh --clean <リポジトリ名> [<タスクID>]   # 確認済みの撮影画像を消す（タスク単位 / 省略時はリポジトリ単位）
 #
-# --serve を付けると、サーバを起動 → URL が 200 を返すまで待つ → 撮影 → サーバをプロセスツリーごと停止、まで行う。
+# --serve を付けると、サーバを起動 → URL が応答するまで待つ → 撮影 → サーバを停止、まで行う。
 # --no-browser-sandbox は Codex の restricted sandbox 内で撮るときだけ使う（ブラウザ内の安全装置と二重になり落ちるため）。
 # 開くのは自分のアプリ（localhost）に限る。外部サイトには使わない。
 set -u
+
+if [ "${1:-}" = --clean ]; then
+  # 撮影フォルダ（%TEMP%/agent-team-screens）の外は消さない。名前は1階層分だけ受け付ける
+  root="${TMPDIR:-/tmp}/agent-team-screens"
+  for name in "${2:-}" "${3:-}"; do
+    case $name in */*|*\\*|.|..) echo "invalid name: $name" >&2; exit 2 ;; esac
+  done
+  [ -n "${2:-}" ] || { echo "usage: capture.sh --clean <リポジトリ名> [<タスクID>]" >&2; exit 2; }
+  target="$root/$2${3:+/$3}"
+  if [ -d "$target" ]; then
+    rm -rf "$target" && echo "removed $target"
+  else
+    echo "nothing to remove: $target"
+  fi
+  rmdir "$root/$2" "$root" 2>/dev/null   # 空になった親フォルダも片付ける
+  exit 0
+fi
 url= out= serve= serve_cwd=. size=1280,800 wait_ms=10000 limit=120 nosbx=
 while [ $# -gt 0 ]; do
   case $1 in
