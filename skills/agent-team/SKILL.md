@@ -24,6 +24,7 @@ agent-teamで進行中の開発は、後続の追加実装・修正・再開に�
    Codex: `~/.agents/codex/skills/agent-team/SKILL.md`。
    共通本体が直接ロードされた場合もこの入口を使う。
 2. 本流・resumeでは `references/defaults.yaml` と `.agents/config/team.yaml` を読む。設定の解決はラッパーに従う。
+   会話の圧縮後と、別の会話で継続するときも、次のdispatch前に1回読み直す。要約や前の会話に残ったmodel・effortは使わない。
 3. `.agents/state/STATE.md` → 対象ミッション → `.agents/state/MEMORY.md`。履歴全量は読まない。
 4. 工程に必要な資料だけ読む: 分解・実行はdispatch、S判定はexpress、状態操作はstate-layer、契約作成はtemplates。実行プロトコルは該当経路だけ読む。
 

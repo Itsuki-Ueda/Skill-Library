@@ -47,9 +47,14 @@ fi
 
 # ---------------------------------------------------------------------------
 # 2. クラウド: ~/.agents を Plugin 展開先へ向ける
+#    Plugin の更新は版ごとの新しいフォルダに入るため、リンクは毎回いまの版へ張り直す。
+#    作成時だけ張ると最初の版を指し続け、スキル本体は最新・~/.agents 経由は古い版というねじれが起きる
+#    （2026-09-25 実例: 9/25 版のスキルが 9/7 版の defaults.yaml を読んでいた）。
 # ---------------------------------------------------------------------------
-if [ ! -e "$HOME/.agents" ]; then
-  ln -s "$ROOT" "$HOME/.agents" && log "~/.agents -> $ROOT をリンクしました"     || log "警告: ~/.agents のリンク作成に失敗しました"
+if [ ! -e "$HOME/.agents" ] || [ -L "$HOME/.agents" ]; then
+  if [ "$(readlink "$HOME/.agents" 2>/dev/null)" != "$ROOT" ]; then
+    ln -sfn "$ROOT" "$HOME/.agents" && log "~/.agents -> $ROOT をリンクしました"     || log "警告: ~/.agents のリンク作成に失敗しました"
+  fi
 elif [ -d "$HOME/.agents" ] && [ ! -L "$HOME/.agents" ]; then
   # Codex が ~/.agents/plugins を作っている等、ディレクトリが既にある場合は
   # 中身を個別にリンクする（ディレクトリ自体は置き換えない）。
