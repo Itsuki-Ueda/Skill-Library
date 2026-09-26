@@ -26,6 +26,18 @@ RUNNER = re.compile(r"(?:^|[;|]|&&)\s*(?:&\s*)?(?:npx|npm|pnpm|yarn|bunx?|pytest
 KEYWORD = re.compile(r"\b(?:test|vitest|jest|pytest|tsc|eslint|typecheck|lint|build|check|verify)\b|capture\.sh")
 # 複合コマンド（; やパイプ、リダイレクト、$LASTEXITCODE の退避）は、記録上の終了コードが検証の成否と一致しない
 COMPOUND = re.compile(r";|(?<![|&])\|(?![|&])|\*?>|\$LASTEXITCODE|\$\?")
+# 先頭の PowerShell の環境変数の代入（`$env:NAME = 値;` の繰り返し）は終了コードに影響しないので、複合の判定から外す
+ENV_PREFIX = re.compile(r"""^\s*(?:\$env:\w+\s*=\s*(?:'[^']*'|"[^"]*"|[^;\s]*)\s*;\s*)+""")
+
+
+def unquoted(text):
+    # 引用符の中（rg の検索語など）の | ; を区切りと誤認しないよう、中身を消してから構造を見る
+    return re.sub(r"'[^']*'|\"[^\"]*\"", "''", text)
+
+
+def is_compound(text):
+    # `cmd; exit $LASTEXITCODE` は cmd の終了コードを保つが、どのコマンドの値を返すかまで解析せず安全側（複合）に倒す
+    return bool(COMPOUND.search(unquoted(ENV_PREFIX.sub("", text))))
 
 
 def find_rollout(key):
@@ -125,10 +137,6 @@ def main():
     print("|---|---|---|---|---|---|")
     custom = re.compile(a.match) if a.match else None
 
-    def unquoted(text):
-        # 引用符の中（rg の検索語など）の | ; を区切りと誤認しないよう、中身を消してから構造を見る
-        return re.sub(r"'[^']*'|\"[^\"]*\"", "''", text)
-
     def is_verify_cmd(text):
         return bool(custom.search(text)) if custom else bool(RUNNER.search(unquoted(text)) and KEYWORD.search(text))
 
@@ -139,7 +147,7 @@ def main():
         secs = dur.get("secs", 0) + dur.get("nanos", 0) / 1e9
         after = "後" if (last_edit is None or parse(ts) > last_edit) else "変更前"
         is_verify = is_verify_cmd(text)
-        compound = is_verify and bool(COMPOUND.search(unquoted(text)))
+        compound = is_verify and is_compound(text)
         if is_verify and after == "後":
             verify_after += 1
             if compound:
