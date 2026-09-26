@@ -3,6 +3,7 @@
 # 既存の値を維持。設定変更時だけ参照経路を確認し、毎dispatchの照合・人間確認を追加しない。
 # プロジェクト側 .agents/config/team.yaml に同じキーがあればそちらが優先（差分上書き）。
 # codex系で model/effort が未定義に落ちた場合の最終フォールバックは codex-protocol.md §1。
+# モデル・effort を選んだ実測の根拠（sol と luna の比較・luna の重み）: ~/.agents/docs/codex-model-comparison.md
 
 routing:
   # 実装系（原型記事のPareto配分。slug変更時はここだけ直す）
