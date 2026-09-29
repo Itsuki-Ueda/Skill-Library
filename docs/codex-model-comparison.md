@@ -64,7 +64,7 @@ Codex の週間上限を3日で使い切りそうになったのを受けて、�
 
 ## 5. この比較を受けて決めたこと（2026-09-26 時点）
 
-- worker は gpt-6-sol medium のまま（luna max にしない）。codex-review は gpt-6-sol medium、research は gpt-5.6-luna max。値の正本は `~/.agents/skills/agent-team/references/defaults.yaml`。
+- worker は gpt-6.1-sol medium のまま（luna max にしない）。codex-review は gpt-6.1-sol medium、research は gpt-6-luna max。値の正本は `~/.agents/skills/agent-team/references/defaults.yaml`。
 - 実装者に「報告前の契約照合」を必須化（`~/.agents/skills/team-worker/SKILL.md`）。
 - 重大度の基準を明確化し、起こりにくく影響が中以下のものを P3 にした（`~/.agents/docs/review-severity.md`）。
 
