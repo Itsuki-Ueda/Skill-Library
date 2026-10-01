@@ -8,9 +8,10 @@
 - 共通本体[0]の前提確認は行う。簡略化するのは契約と記帳であり、必要な実行検証は省略しない。
 
 ## 手順
-1. `templates/EXPRESS_TEMPLATE.md` のGoal / Acceptance / Allowed paths / Verificationを埋め、queue/tasks/T-E-xxx.mdへ保存する。
+1. `templates/EXPRESS_TEMPLATE.md` のGoal / Acceptance / Allowed paths / Verificationを埋め、queue/tasks/T-E-xxx.mdへ保存する。この手順と雛形は、既読でもT-E-xxxを始めるたびに読み直す（E8）。
+   画面に表示されるファイルを変える、またはモックがある場合は「画面確認」欄も埋める。要否・モックの扱い・撮影方法はdispatch「画面確認（前倒し）」に従う（expressでも省略しない）。
 2. ハーネスのexpress担当へ契約とteam-worker規約を渡す。session IDと成果物を記録する。
-3. 親が報告をqueue/reportsへ保存し、差分・新規ファイル・契約外変更・要件・退行を直読する。版と判定はdispatchの形式でqueue/reviewsへ残す。
+3. 親が報告をqueue/reportsへ保存し、差分・新規ファイル・契約外変更・要件・退行を直読する。版と判定はdispatchの形式でqueue/reviewsへ残す。画面確認がある場合は、workerの画像を開いて（モックがあれば並べて）確認し、その記録が揃うまでcommitしない。
 4. 修正は同じworkerへ戻し、親が対処と退行を確認する。上限はlimits.fix_rounds_express。
 5. 契約外変更なしを確認し、verify.post_changeとverify.smokeを実行する。テスト契約に変異があれば適用・失敗・復元を確認する。
 6. 親がレビュー・検証した内容だけをcommitする。変更が入ったら影響するレビューと検証を更新する。
