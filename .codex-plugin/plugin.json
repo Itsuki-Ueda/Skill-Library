@@ -1,6 +1,6 @@
 {
   "name": "skill-library",
-  "version": "1.20261001.3415",
+  "version": "1.20261001.50829",
   "description": "Itsuki-Ueda の CC / Codex 共通スキル一式。クラウド環境で ~/.agents/skills 相当を Codex から利用するための Plugin 包装。",
   "author": {
     "name": "Itsuki-Ueda"

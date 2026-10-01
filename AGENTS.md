@@ -49,7 +49,7 @@ author は**ディレクトリで自動的に決まる**。手で切り替えな
 
 | 用途 | user.name | user.email | 適用範囲 |
 |---|---|---|---|
-| 仕事用（既定） | `itsukiueda-ourai` | 仕事用メール（`~/.gitconfig` の `[user]` に設定済み。実アドレスはこの文書に書かない） | 上記以外すべて |
+| 仕事用（既定） | `~/.gitconfig` の `[user]` に設定済み（仕事用のユーザー名・メールはこの文書に書かない） | 同左 | 上記以外すべて |
 | プライベート | `Itsuki-Ueda` | `73779819+Itsuki-Ueda@users.noreply.github.com` | `Documents/個人開発/` 配下 と `~/.agents` |
 
 仕組み: `~/.gitconfig` の `[user]` が仕事用の既定で、末尾の `includeIf "gitdir/i:..."` が
