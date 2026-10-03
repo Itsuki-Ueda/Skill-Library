@@ -98,5 +98,5 @@ GitHub への push まで完了させること。push 前は正本の更新が�
 - 書き先は「誰が読む必要があるか」で1つに決める（全員→AGENTS.md / agent-team の Orchestrator だけ→MEMORY.md）。
 - 教訓・罠の初出は `INBOX.md` に1行（候補）。同じ主題の3回目で正式記憶へ昇格。人間の明示指示だけ直行。
 - 書式は「症状・条件 → 対処」＋確認日＋根拠（file:line）。根拠の無い項目は refresh で削除される。
-- SessionStart hook が閾値超過（AGENTS.md>200行等）を報告したら: agent-team 本流・resumeでは作業前に実施（statusは超過の報告のみ）、
+- SessionStart hook が閾値超過を報告したら: agent-team 本流・resumeでは作業前に実施（statusは超過の報告のみ）、
   それ以外のセッションでは着手前に人間へ一言告げて判断を仰ぐ。黙って無視しない。
