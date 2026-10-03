@@ -16,4 +16,4 @@
 
 ## Log
 
-- （直近の完了記録。時系列1行ずつ・最大20件、古いものから削る。全履歴はgitとmissions/closed/にある）
+- （直近の完了記録。時系列1行ずつ。件数と整理は memory-ops の distill に従う。全履歴はgitとmissions/closed/にある）
