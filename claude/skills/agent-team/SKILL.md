@@ -18,6 +18,7 @@ agent-team中の分担は本書と共通本体を適用し、通常セッショ�
 - `agent:` はAgentツールで名前指定して起動し、継続は同じAgentへのSendMessage。role skillの正本パスと契約/対象を必ず渡す。
 - 非同期起動し、CLIのsession ID・`-o` 出力・エラーログ・終了コードファイル（codex-protocol §3d の `<out>.exit`）のパスを記録する。回収は完了通知を既定とする。起動元のexecutorが交代して通知を受けられない場合だけ、後任は `<out>.exit` の出現を待機手段（Monitor等）で1回待ち、**終了コード0かつ `-o` が空でない**ことで完了と判定する。定期的に見に行かない。`-o` の中身の合否（NEED-DECISION等）は完了判定とは別に読む。usage limit・タイムアウト・中断時に `-o` が残るかは未確認（2026-09-22時点、codex-cli 0.153.4）。
 - Windowsのgit `ref:path` はPowerShellで全体を引用する。Git Bashが必要ならMSYS_NO_PATHCONV=1を使う。
+- 別のworktree（他ミッション・レーン）のファイルを書くときは、先に `EnterWorktree(path=<そのworktree>)` で切り替えてから書き、終わったら `EnterWorktree` で元のworktreeへ戻る。デスクトップアプリのworktreeセッションでは、別worktreeへのWrite/Editがフックで止められるため。止められてもBashやコピーで回り込まない（WriteとBashを同時に送らない）。レーンのexecutorは自分のレーンのworktreeに `EnterWorktree` してから作業する。
 
 ## レビュー経路
 | 対象 | 担当 |
