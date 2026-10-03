@@ -12,7 +12,7 @@ agent-team は「いつ測るか・超えたら本スキルを呼ぶ」だけを
 
 ## 原則
 
-1. **測ってから動く**。行数は `scripts/check-size.sh` で測る（目視や記憶で判断しない）。
+1. **測ってから動く**。行数（INBOX は件数）は `scripts/check-size.sh` で測る（目視や記憶で判断しない）。
 2. **閾値超過は放置しない**。agent-team 本流・resumeでは作業前に実施。statusは読み取り専用で超過を報告するだけ。それ以外のセッションでは
    着手前に人間へ一言告げ、実施するかは人間が決める（git 履歴に残るので消しても失われない）。
 3. **1回目・2回目は候補、3回目で正式**。人間が「覚えて」と明示したものだけ直行。
@@ -26,7 +26,7 @@ agent-team は「いつ測るか・超えたら本スキルを呼ぶ」だけを
 | リポジトリ `AGENTS.md` | コードを壊さないための規約（ビルドの癖・配置・検証コマンド・DB制約）と、**人間の決定・好み**（プロジェクト全体に効くもの） | **全員**（Codex はネイティブ、CC は `CLAUDE.md` の `@AGENTS.md` 経由） | 毎セッション・毎タスク自動 | 200行 |
 | `.agents/state/MEMORY.md` | **ミッションを回す知見だけ**（分解の癖・レビューが見落とす箇所・dispatch の癖） | agent-team の Orchestrator だけ | agent-team 起動時 | 150行 |
 | `.agents/state/STATE.md` | 現在地（進行中ミッション・Blockers・受入負債・直近 Log） | Orchestrator だけ | agent-team 起動時 | 100行 |
-| `.agents/state/INBOX.md` | 教訓・罠の候補箱。初出はここ | 書く人全員 / 読むのは棚卸し時 | 起動時には読まない | 60行 |
+| `.agents/state/INBOX.md` | 教訓・罠の候補箱。初出はここ | 書く人全員 / 読むのは棚卸し時 | 起動時には読まない | 100件 |
 | CC 自動メモリ（`~/.claude/projects/<project>/memory/`） | Claude がこのユーザーとどう働くか・このPCの道具の癖（プロジェクト非依存） | CC の Claude だけ | CC 起動時 | 本スキルの管理外 |
 
 - **全セッション横断の共有記憶は AGENTS.md**。新しい読み込み機構は作らない（ハーネスがすでに読んでいる）。
@@ -68,13 +68,14 @@ AGENTS.md の既存の節構成（Team Worker Rules / Design / 罠 等）は変�
 | `AGENTS.md` | 200行 | `refresh` |
 | `.agents/state/STATE.md` | 100行 | `distill` |
 | `.agents/state/MEMORY.md` | 150行 | `refresh` |
-| `.agents/state/INBOX.md` | 60行 | `promote` |
+| `.agents/state/INBOX.md` | 100件 | `promote` |
 
 ```
 bash ~/.agents/skills/memory-ops/scripts/check-size.sh
 ```
 
 cwd と1階層下から `AGENTS.md` と `.agents/state` を探し、存在するファイルの行数と超過を1行で出す
+（INBOX.md だけは件数: `| YYYY-MM-DD |` で始まる表の行と、書式違反の `- ` 箇条書き行を1件と数える。冒頭の説明文と表見出しは数えない）
 （`.agents/state` が無いプロジェクトでも AGENTS.md は測る。どちらも無ければ無音）。
 SessionStart hook（`~/.claude/settings.json`）から同じスクリプトが `--json` で呼ばれ、
 毎セッション冒頭に結果が表示される。
@@ -144,10 +145,14 @@ INBOX.md の書式（1件1行の表）:
 
 ### `/memory-ops promote` — INBOX.md を棚卸しして昇格・掃除する
 
-1. 回数 ≥ 3 の行 → 昇格先（AGENTS.md / MEMORY.md）へ書式付きで移し、INBOX から削除する。
-2. 初出から **60日** 経過して回数 3 未満のままの行 → 削除する（git にある。再発したら初出扱いで戻る）。
-3. 昇格先が空欄の行は書き先判定で埋める。
-4. `check-size.sh` で INBOX.md が 60 行以下になったことを確認し、コミットする。
+1. **統合**: 同じ主題が別の行に分かれていれば1行にまとめる（回数は合計、初出は最古、最終は最新）。
+   表の外に `- ` 箇条書きで書かれた候補も表の行に直す。
+2. 回数 ≥ 3 の行 → 昇格先（AGENTS.md / MEMORY.md）へ書式付きで移し、INBOX から削除する。
+3. まだ **95件** を超えていれば、**回数1** の行を初出の古い順に 95件 になるまで削除する（git にある。再発したら初出扱いで戻る）。
+   回数2の行は再発しうるので消さない。
+4. それでも 95件 を超えるなら削除をやめ、残りの件数を人間に報告する。
+5. 昇格先が空欄の行は書き先判定で埋める。
+6. `check-size.sh` で件数を確認し、コミットする。
 
 ### 引数なし `/memory-ops`
 

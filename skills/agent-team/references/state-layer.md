@@ -11,7 +11,7 @@
 | --- | --- | --- |
 | 作業記憶 | `.agents/state/STATE.md` | activeミッションの1行サマリ+blocker+受入負債+直近Log。**上限100行** |
 | 中期記憶 | `.agents/state/missions/M-xxx.md`（完了で `closed/` へ） | ミッションの経緯・判断の詳細 |
-| 候補箱 | `.agents/state/INBOX.md` | 教訓・罠の初出はここ。3回目で正式記憶へ昇格。**上限60行** |
+| 候補箱 | `.agents/state/INBOX.md` | 教訓・罠の初出はここ。3回目で正式記憶へ昇格。**上限100件** |
 | 長期記憶（Orchestrator向け） | `.agents/state/MEMORY.md` | ミッションを回す知見だけ（人間の決定・好みは AGENTS.md へ）。**上限150行** |
 | 長期記憶（全員向け） | リポジトリ `AGENTS.md` | コードを壊さないための規約と人間の決定・好み。全セッションが読む。**上限200行** |
 | 履歴 | git履歴 + `missions/closed/` + `.agents/queue/` | 無制限。想起はresearcherに掘らせる |
