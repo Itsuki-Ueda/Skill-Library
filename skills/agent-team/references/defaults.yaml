@@ -24,8 +24,8 @@ routing:
   # Codexレビュアーの正本。gate1(Codex実装分の独立レビュー)とcc-worker実装分のレビューの両方で使う。
   codex-review: { cli: codex, model: gpt-6.1-sol, effort: medium }
 
-  # 執行系（[4]〜[6]の進行管理を担うexecutorサブエージェント。Fable温存の要）
-  # **Orchestratorが Fable のときだけ使う**（Opus等が指揮する場合は委譲せず直接実行）
+  # 執行系（[4]〜[6]の進行管理をミッション単位で担うexecutorサブエージェント。親のコンテキスト節約）
+  # Orchestratorが Fable / Opus のときに使う（Opus は2026-10-05から試行）。それ以外は委譲せず直接実行
   executor:    { agent: executor }                 # モデル・effortはエージェント定義に従う(Opus 5.5 / xhigh)
 
 # Orchestrator が Codex のときのルーティング。運用手順の正本は ~/.agents/codex/skills/agent-team/SKILL.md。

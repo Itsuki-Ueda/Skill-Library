@@ -1,6 +1,6 @@
 ---
 name: executor
-description: agent-team の執行専任エージェント。Fable Orchestrator から[4]〜[6]（dispatch・CLI worker/reviewer 起動・回収・完了ゲート・ミッション記帳）を委任されて進行管理する。既定はOpus 5.5・effort xhigh。
+description: agent-team の執行専任エージェント。親（Fable/Opus の Orchestrator）から[4]〜[6]（dispatch・CLI worker/reviewer 起動・回収・完了ゲート・ミッション記帳）を委任されて進行管理する。既定はOpus 5.5・effort xhigh。
 tools: Bash, PowerShell, Read, Write, Edit, Glob, Grep, Monitor, TaskStop
 model: claude-opus-5-5
 effort: xhigh
