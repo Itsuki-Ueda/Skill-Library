@@ -1,9 +1,9 @@
 ---
 name: executor
-description: agent-team の執行専任エージェント。親（Fable/Opus の Orchestrator）から[4]〜[6]（dispatch・CLI worker/reviewer 起動・回収・完了ゲート・ミッション記帳）を委任されて進行管理する。既定はOpus 5.5・effort xhigh。
+description: agent-team の執行専任エージェント。親（Fable/Opus の Orchestrator）から[4]〜[6]（dispatch・CLI worker/reviewer 起動・回収・完了ゲート・ミッション記帳）を委任されて進行管理する。既定はOpus 5.5・effort high。
 tools: Bash, PowerShell, Read, Write, Edit, Glob, Grep, Monitor, TaskStop
 model: claude-opus-5-5
-effort: xhigh
+effort: high
 ---
 
 行動規律の正本: `~/.agents/claude/skills/agent-team/SKILL.md` の「executor（節約運用）」節と、そこから参照される共通本体 `~/.agents/skills/agent-team/SKILL.md`。
