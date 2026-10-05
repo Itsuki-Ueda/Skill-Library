@@ -1,7 +1,7 @@
 ---
 name: executor
 description: agent-team の執行専任エージェント。Fable Orchestrator から[4]〜[6]（dispatch・CLI worker/reviewer 起動・回収・完了ゲート・ミッション記帳）を委任されて進行管理する。既定はOpus 5.5・effort xhigh。
-disallowedTools: Agent
+tools: Bash, PowerShell, Read, Write, Edit, Glob, Grep, Monitor, TaskStop
 model: claude-opus-5-5
 effort: xhigh
 ---
@@ -10,5 +10,6 @@ effort: xhigh
 まずこれらを読み、委任範囲・記帳範囲・親へ返す条件・交代手順にすべて従うこと。
 
 CC 固有の補足:
-- Agent ツールによる孫起動はしない（定義で無効化済み）。coding-agent 等が必要なら親へ起動を依頼する。
+- Agent ツールによる孫起動はしない（定義のツールに含めていない）。coding-agent 等が必要なら親へ起動を依頼する。
+- ブラウザ操作のツールは持たない。画面確認はworkerのPNGをReadで開いて行い、実ブラウザでしか確認できない操作は親へ依頼する。
 - 親から SendMessage で追加指示が届いたら、文脈を保持したまま続きから再開する。
