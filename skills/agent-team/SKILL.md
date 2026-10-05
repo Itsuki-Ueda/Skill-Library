@@ -121,6 +121,7 @@ Git操作は `~/.agents/skills/git-ops/SKILL.md` に従う。
 - git-opsに従いミッション由来の一時worktree・統合済みブランチを後片付けする。
 - 撮影画像の残りを消す: `bash ~/.agents/skills/agent-team/scripts/capture.sh --clean <リポジトリ名>`（タスクごとの削除漏れの受け皿）。
 - 未統合・ロック等で保持する場合は理由と次の削除条件を記録する。未処理を黙って放置しない。
+- 費用と品質を記録する: `python ~/.agents/skills/agent-team/scripts/mission_cost.py <リポジトリ> <M-ID>`（ローカル台帳 `~/.claude/agent-team-ledger.jsonl` に1行追記）。出力の1行を最終報告に載せる。改善の効果はこの台帳で前後比較する。
 - 変更、検証、レビュー達成状況、例外受入・残課題、保持資源を報告する。報告に書く件数・回数・時間は、git logと記録ファイルで裏取りしてから確定値にする。裏取りしていない値は出典を「自己申告」と明記する。
 
 ## init
