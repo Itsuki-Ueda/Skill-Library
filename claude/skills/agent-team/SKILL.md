@@ -37,7 +37,7 @@ executor運用では、独立性はCodexレビュー、別ベンダーの視点�
 - 渡すものは共通本体・dispatch・本書のパス、ミッション、分解骨子、契約清書の指示、停止条件。
 - executorはミッションとqueueへ記帳できる。STATE縮約は親だけ。
 - executorはCLI worker・CLI reviewerに加え、routingのagent（coding-agent・reviewer）もAgentツールで自分が起動する（`run_in_background=false` で結果を待つ）。親は中継しない。
-- 差し戻しは同じエージェントへSendMessageで送り、末尾に「報告の全文を `<out>.report.md` に書き、最後に空の `<out>.done` を作ってから報告を返す」と添える（`<out>` はCLIの `-o` と同じく作業ツリーの外）。送ったら番を終えず、PowerShellツール（timeout 600000）で `& ~/.agents/skills/agent-team/scripts/wait-done.ps1 <out>.done` を実行して待つ（TIMEOUTなら再実行）。番を終えると自動催促でexecutorが終わり、結果を受け取れないため（2026-10-06実測）。DONE後は `<out>.report.md` を正とし、遅れて届いた正式報告は親へ転送しない。
+- 差し戻しは同じエージェントへSendMessageで送り、末尾に「報告の全文を `<out>.report.md` に書き、最後に空の `<out>.done` を作ってから報告を返す」と添える（`<out>` はCLIの `-o` と同じく作業ツリーの外）。送ったら番を終えず、Bashツール（timeout 600000）で `bash ~/.agents/skills/agent-team/scripts/wait-done.sh <out>.done` を実行して待つ（TIMEOUTなら再実行）。番を終えると自動催促でexecutorが終わり、結果を受け取れないため（2026-10-06実測）。DONE後は `<out>.report.md` を正とし、遅れて届いた正式報告は親へ転送しない。
 - 設計変更、同一タスク2回切替、usage limit、人間判断、破壊的Git操作の判断は親へ返す。孫（coding-agent・reviewer・CLI）からのエスカレーション・NEED-DECISION・P0/P1の設計指摘も、executorが自分で決着させず親へ返す。返すときは作業を止め、判断に要る事実と選択肢を添える。同じexecutorへ追加指示して継続する。
 - レーン運用ではレーンごとに1体のexecutorを置き、親が起動する。レーン間の受け渡し（合流・範囲変更の配布）は親が行う。
 - executorはコンテキスト上限に近づいたら `~/.agents/skills/agent-team/references/templates/HANDOVER_TEMPLATE.md` の形で引き継ぎメモをミッションのLogに残し、親へ交代を求める。交代のたびに代・理由・消費トークンをミッションに記録する。理由の無い交代は記録しない。
