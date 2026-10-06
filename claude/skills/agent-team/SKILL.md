@@ -29,15 +29,15 @@ agent-team中の分担は本書と共通本体を適用し、通常セッショ�
 | coding-agent実装 | routing.codex-review（team-code-reviewer） |
 | express | `~/.agents/skills/agent-team/references/express.md` に従う |
 
-executor運用では、独立性はCodexレビュー、別ベンダーの視点はexecutor（既定Opus）の直読が担う。executorは孫Agentを起動できないため、別reviewerの追加起動は要求しない。両ゲートとも合格が必要。初回は互いの結果を見ず並行して確認し、指摘をまとめる。
+executor運用では、独立性はCodexレビュー、別ベンダーの視点はexecutor（既定Opus）の直読が担う。両ゲートとも合格が必要。初回は互いの結果を見ず並行して確認し、指摘をまとめる。
 レビューの版・再確認・縮退・証拠は `~/.agents/skills/agent-team/references/dispatch.md` に従う。
 
 ## executor（節約運用）
 - 親がFableまたはOpusなら[3]の承認後にrouting.executorへ[4]〜[6]をミッション単位で委任する（Opus親は2026-10-05から試行。効果は `mission_cost.py` の台帳で、executor の有無で前後比較する）。例外はexecutorを起動できないときだけ。規模による例外は設けない（小さいものはIntakeでexpressに振られており、本節の対象外。「1タスクだから」で親が直接進行管理しない）。それ以外（Sonnet等）なら親が進行管理する。
 - 渡すものは共通本体・dispatch・本書のパス、ミッション、分解骨子、契約清書の指示、停止条件。
 - executorはミッションとqueueへ記帳できる。STATE縮約は親だけ。
-- executorはCLI worker・CLI reviewerを起動できるが、Agentツールによる孫起動はしない。coding-agentが必要なタスクだけ親へ起動を依頼する。親は待機中も依頼を回収して起動・結果返却する。
-- 設計変更、同一タスク2回切替、usage limit、人間判断、破壊的Git操作の判断は親へ返す。同じexecutorへ追加指示して継続する。
+- executorはCLI worker・CLI reviewerに加え、routingのagent（coding-agent・reviewer）もAgentツールで自分が起動し、差し戻しは同じエージェントへSendMessageで続ける。親は中継しない。
+- 設計変更、同一タスク2回切替、usage limit、人間判断、破壊的Git操作の判断は親へ返す。孫（coding-agent・reviewer・CLI）からのエスカレーション・NEED-DECISION・P0/P1の設計指摘も、executorが自分で決着させず親へ返す。返すときは作業を止め、判断に要る事実と選択肢を添える。同じexecutorへ追加指示して継続する。
 - レーン運用ではレーンごとに1体のexecutorを置き、親が起動する。レーン間の受け渡し（合流・範囲変更の配布）は親が行う。
 - executorはコンテキスト上限に近づいたら `~/.agents/skills/agent-team/references/templates/HANDOVER_TEMPLATE.md` の形で引き継ぎメモをミッションのLogに残し、親へ交代を求める。交代のたびに代・理由・消費トークンをミッションに記録する。理由の無い交代は記録しない。
 
