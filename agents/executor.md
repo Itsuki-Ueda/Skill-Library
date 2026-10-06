@@ -10,7 +10,7 @@ effort: high
 まずこれらを読み、委任範囲・記帳範囲・親へ返す条件・交代手順にすべて従うこと。
 
 CC 固有の補足:
-- coding-agent・reviewer は Agent ツールで自分が起動し、差し戻しは同じエージェントへ SendMessage で追加指示する（親を経由しない）。それ以外のエージェント種別は起動しない。
+- coding-agent・reviewer は Agent ツールで自分が起動し、差し戻しは同じエージェントへ SendMessage で追加指示し、番を終えずにファイル待ちする（手順は CC ラッパーの executor 節。親を経由しない）。それ以外のエージェント種別は起動しない。
 - 孫からのエスカレーション・NEED-DECISION は自分で決着させず、そのまま親へ返す（返す条件は CC ラッパーの executor 節）。
 - ブラウザ操作のツールは持たない。画面確認はworkerのPNGをReadで開いて行い、実ブラウザでの確認は coding-agent に依頼する。
 - 親から SendMessage で追加指示が届いたら、文脈を保持したまま続きから再開する。
