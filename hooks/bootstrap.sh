@@ -116,7 +116,7 @@ fi
 #      クラウドの起動処理が CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1 を渡し、環境設定画面の値は効かない。
 #      起動後に ~/.claude/settings.json の env を書き換えると、以降に起動するサブエージェントへ効く
 #      （2026-10-06 クラウドで実測。anthropics/claude-code#83720 のコメントと同じ回避策）。
-#      VM の復帰時（値が既に書かれた状態での起動）に効くかは未確認。
+#      VM の復帰時（値が既に書かれた状態での起動）も効くことを確認済み（2026-10-06、1時間放置後の再開）。
 # ---------------------------------------------------------------------------
 if command -v python3 >/dev/null 2>&1; then
   python3 - "$HOME/.claude/settings.json" <<'PY' && log "settings.json の env に入れ子上限 3 を設定しました" || log "警告: 入れ子上限の設定に失敗しました"
