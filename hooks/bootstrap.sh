@@ -112,6 +112,26 @@ CODEX_AGENTS_MD
 fi
 
 # ---------------------------------------------------------------------------
+# 3.5. サブエージェントの入れ子上限を 3 にする（agent-team の executor が coding-agent を起動するため）
+#      クラウドの起動処理が CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1 を渡し、環境設定画面の値は効かない。
+#      起動後に ~/.claude/settings.json の env を書き換えると、以降に起動するサブエージェントへ効く
+#      （2026-10-06 クラウドで実測。anthropics/claude-code#83720 のコメントと同じ回避策）。
+#      VM の復帰時（値が既に書かれた状態での起動）に効くかは未確認。
+# ---------------------------------------------------------------------------
+if command -v python3 >/dev/null 2>&1; then
+  python3 - "$HOME/.claude/settings.json" <<'PY' && log "settings.json の env に入れ子上限 3 を設定しました" || log "警告: 入れ子上限の設定に失敗しました"
+import json, os, sys
+p = sys.argv[1]
+s = json.load(open(p, encoding="utf-8")) if os.path.exists(p) else {}
+env = s.setdefault("env", {})
+if env.get("CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH") != "3":
+    env["CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH"] = "3"
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    json.dump(s, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+fi
+
+# ---------------------------------------------------------------------------
 # 4. Codex CLI があれば marketplace 登録と Plugin 導入を試みる（失敗しても続行）
 # ---------------------------------------------------------------------------
 if command -v codex >/dev/null 2>&1; then
