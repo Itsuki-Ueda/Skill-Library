@@ -41,7 +41,7 @@ Git 操作の前に、下表のどちらのスキルを読むかを判定し、�
 | 局面 | 正本スキル |
 |---|---|
 | **初期セットアップ（一度きり）**: リポジトリ新規作成 / クローンして開発できる状態にする / `git init` / `gh repo create` / `.gitignore`・`.gitattributes` 初期配置 / 初回コミット | `git-setup`（`~/.agents/skills/git-setup/SKILL.md`） |
-| **日常運用（毎回）**: ブランチ・PR・マージ・worktree・後片付け | `git-ops`（`~/.agents/skills/git-ops/SKILL.md`） |
+| **日常運用（毎回）**: ブランチ・PR・マージ・worktree・後片付け（クラウドのセッション、GitHub のツールでPRを作る・マージする場合も） | `git-ops`（`~/.agents/skills/git-ops/SKILL.md`） |
 
 ## Git author 設定 (2026-09-07 再定義・自動切替)
 
