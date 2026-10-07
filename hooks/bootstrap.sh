@@ -245,6 +245,11 @@ if [ -n "$CODEX_AUTH_NOTE" ]; then
 
 $CODEX_AUTH_NOTE"
 fi
+# agent-team 運用のリポジトリなら、圧縮・再開の後も agent-team を読むよう知らせる（ローカルは settings.json の hook が同じものを出す）。
+REMINDER=$(bash "$ROOT/skills/agent-team/scripts/session-reminder.sh" 2>/dev/null)
+[ -n "$REMINDER" ] && CONTEXT="$CONTEXT
+
+$REMINDER"
 for f in "$ROOT/AGENTS.md" "$ROOT/claude/CLAUDE.md"; do
   [ -f "$f" ] || continue
   CONTEXT="$CONTEXT
