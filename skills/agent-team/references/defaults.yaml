@@ -47,5 +47,5 @@ codex_routing:
 
 limits:
   fix_rounds_express: 2
-  fix_rounds_task: 3
+  fix_rounds_task: 3     # タスクのコードレビュー往復。数え方と超過時の扱いは dispatch「再レビュー・上限」
   fix_rounds_plan: 3     # [3]分解文書のプランレビュー往復。超過は人間へエスカレーション
