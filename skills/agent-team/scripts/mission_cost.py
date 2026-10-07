@@ -8,6 +8,8 @@
   - サブエージェント: ファイルに書かれた agent ID、または依頼文にミッション ID・タスク ID・作業場所名を含むもの。
   - 親: 呼び出しごとに、その呼び出しのツール入力・本文に出たミッションの識別子で割り振り、出なければ直前の割り振りを引き継ぐ。
     どのミッションにも当たらない分は「未割当」。
+作業時間: そのミッションに割り振った Claude の呼び出し時刻を並べ、間隔10分以内の区間だけを足す（人間の待ち・放置は含まない）。
+計画の形: ミッションの並列計画の「波: N」「最長の列: N段」と、executor の代数。
 費用の換算: 通常入力1・キャッシュ読み0.1・キャッシュ書き1.25・出力5 の仮定（相対比較用。実際の料金表ではない）。
 """
 import glob, json, os, re, sys, collections
@@ -25,11 +27,13 @@ def parse_mission(path):
     s = open(path, encoding="utf-8").read(); mid = os.path.basename(path)[:-3]
     rows = [l for l in s.splitlines() if re.match(r"\|\s*T-", l)]
     rev = " ".join(r.split("|")[5] if r.count("|") > 6 else r for r in rows)
-    times = re.findall(r"^- (\d{4}-\d{2}-\d{2}) (\d{2})", s, re.M)
+    times = sorted(re.findall(r"^- (\d{4}-\d{2}-\d{2}) (\d{2})", s, re.M))
+    num = lambda pat: max(map(int, re.findall(pat, s)), default=None)
     return {
         "id": mid, "path": path,
         "keys": {mid} | set(re.findall(TASK, s)) | set(re.findall(r"\.claude/worktrees/([\w.-]+)", s)),
-        "codex": set(re.findall(UUID, s)), "agents": set(re.findall(r"agent (a[0-9a-f]{16})", s)),
+        # Codex は UUID 全体か、「Codex 01a10fa6」のような先頭8桁で書かれる（rollout のファイル名との部分一致で引く）
+        "codex": set(re.findall(UUID, s)) | set(re.findall(r"Codex[^0-9a-f\n]{0,3}([0-9a-f]{8})\b", s)), "agents": set(re.findall(r"agent (a[0-9a-f]{16})", s)),
         "quality": {
             "tasks": len(rows),
             "review_rounds": sum(max(map(int, re.findall(r"\br(\d+)", r)), default=0) for r in rows),
@@ -40,6 +44,9 @@ def parse_mission(path):
             "integration_review_rounds": len(set(re.findall(r"統合レビュー[^\n]*?r(\d+)", s))),
             "human_decisions": len(re.findall(r"^- \d{4}-\d{2}-\d{2}[^\n]*人間", s, re.M)),
         },
+        # 計画の形: 並列計画の「波: N」「最長の列: N段」と、executor の代数（「N 代目」「第 N 代」の最大）
+        "plan": {"waves": num(r"波[:：]\s*(\d+)"), "critical_path": num(r"最長の列[:：]\s*(\d+)"),
+                 "executor_gens": num(r"(?:第\s*|\b)(\d+)\s*代(?:目)?")},
         "start": f"{times[0][0]} {times[0][1]}" if times else "", "end": f"{times[-1][0]} {times[-1][1]}" if times else "",
     }
 
@@ -89,6 +96,12 @@ def first_prompt(path):
     return ""
 
 
+def active_hours(stamps, gap=600):
+    """Claude の呼び出し時刻を並べ、間隔が gap 秒以内の区間だけを足した作業時間（人間の待ち・放置を除く）。"""
+    t = sorted(datetime.fromisoformat(x.replace("Z", "+00:00")).timestamp() for x in stamps if x)
+    return round(sum(b - a for a, b in zip(t, t[1:]) if b - a <= gap) / 3600, 2)
+
+
 def main():
     args = sys.argv[1:]; ledger = os.path.expanduser("~/.claude/agent-team-ledger.jsonl")
     if "--ledger" in args: i = args.index("--ledger"); ledger = args[i + 1]; del args[i:i + 2]
@@ -100,7 +113,7 @@ def main():
     norm = lambda x: os.path.normcase(os.path.abspath(x))
     sessions = [f for d in glob.glob(os.path.expanduser("~/.claude/projects/") + enc + "*") for f in glob.glob(d + "/*.jsonl")
                 if (lambda c: c and (norm(c) + os.sep).startswith(norm(repo) + os.sep))(session_cwd(f))]
-    res = {m["id"]: {"parent": collections.Counter(), "sub": collections.Counter(), "sub_n": collections.Counter()} for m in ms}
+    res = {m["id"]: {"parent": collections.Counter(), "sub": collections.Counter(), "sub_n": collections.Counter(), "ts": []} for m in ms}
     unassigned = collections.Counter()
     for f in sessions:
         cur = None
@@ -109,6 +122,7 @@ def main():
             if len(hit) == 1: cur = hit[0]
             nums = {k: v for k, v in u.items() if isinstance(v, (int, float))}
             (res[cur]["parent"] if cur else unassigned).update(nums | {"units": units(u), "calls": 1})
+            if cur: res[cur]["ts"].append(ts)
         for sf in glob.glob(f[:-6] + "/subagents/agent-*.jsonl"):
             aid = os.path.basename(sf)[6:-6]; prompt = first_prompt(sf)
             owner = next((m["id"] for m in ms if aid in m["agents"]), None) or \
@@ -116,14 +130,16 @@ def main():
             if not owner: continue
             meta = sf[:-6] + ".meta.json"
             t = json.load(open(meta, encoding="utf-8")).get("agentType", "?") if os.path.exists(meta) else "?"
-            for _, u, _ in claude_calls(sf, sidechain=True):
-                res[owner]["sub"].update({t: units(u)}); res[owner]["sub_n"].update({t: 1})
+            for _, u, _x in claude_calls(sf, sidechain=True):
+                res[owner]["sub"].update({t: units(u)}); res[owner]["sub_n"].update({t: 1}); res[owner]["ts"].append(_)
     with open(ledger, "a", encoding="utf-8") as lg:
         for m in sorted(ms, key=lambda x: x["id"]):
             if want and m["id"] not in want: continue
             r = res[m["id"]]; cx, n = codex_usage(m["codex"])
             row = {"repo": os.path.basename(repo), "mission": m["id"], "start": m["start"], "end": m["end"],
                    "measured_at": datetime.now().isoformat(timespec="minutes"),
+                   "active_hours": active_hours(r["ts"]),
+                   "plan": m["plan"],
                    "claude_units": round(r["parent"]["units"] + sum(r["sub"].values())),
                    "parent": {"units": round(r["parent"]["units"]), "calls": r["parent"]["calls"],
                               "avg_ctx": round((r["parent"]["cache_read_input_tokens"] + r["parent"]["cache_creation_input_tokens"] + r["parent"]["input_tokens"]) / max(r["parent"]["calls"], 1))},
@@ -133,7 +149,7 @@ def main():
                    "quality": m["quality"]}
             lg.write(json.dumps(row, ensure_ascii=False) + "\n")
             sub = " ".join(f"{t}={v['units'] / 1e6:.1f}M" for t, v in row["subagents"].items())
-            print(f"{m['id']} {m['start']}〜{m['end']} | Claude {row['claude_units'] / 1e6:6.1f}M（親 {row['parent']['units'] / 1e6:.1f}M・平均ctx {row['parent']['avg_ctx']:,} / {sub}）"
+            print(f"{m['id']} {m['start']}〜{m['end']}（作業 {row['active_hours']}h・{m['plan']}） | Claude {row['claude_units'] / 1e6:6.1f}M（親 {row['parent']['units'] / 1e6:.1f}M・平均ctx {row['parent']['avg_ctx']:,} / {sub}）"
                   f" | Codex 入力 {cx['input_tokens'] / 1e6:.1f}M（{n}/{len(m['codex'])}件） | 品質 {m['quality']}")
     print(f"未割当（親）: {unassigned['units'] / 1e6:.1f}M・{unassigned['calls']}回 / 台帳: {ledger}")
 
