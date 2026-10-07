@@ -10,7 +10,7 @@
     どのミッションにも当たらない分は「未割当」。
 作業時間: そのミッションに割り振った Claude の呼び出し時刻を並べ、間隔10分以内の区間だけを足す（人間の待ち・放置は含まない）。
 計画の形: ミッションの並列計画の「波: N」「最長の列: N段」と、executor の代数。
-費用の換算: 通常入力1・キャッシュ読み0.1・キャッシュ書き1.25・出力5 の仮定（相対比較用。実際の料金表ではない）。
+費用の換算: 通常入力1・キャッシュ読み0.1・キャッシュ書き1.25（1時間キャッシュは2.0）・出力5 の仮定（相対比較用。実際の料金表ではない）。
 """
 import glob, json, os, re, sys, collections
 from datetime import datetime
@@ -20,7 +20,12 @@ TASK = r"T-[A-Z0-9]+(?:-[A-Z0-9]+)*-?\d+[a-z]?"
 W = {"input_tokens": 1, "cache_read_input_tokens": 0.1, "cache_creation_input_tokens": 1.25, "output_tokens": 5}
 
 
-def units(u): return sum(u.get(k, 0) * w for k, w in W.items())
+def units(u):
+    """キャッシュ書き込みは内訳があれば 5分=1.25・1時間=2.0 で数える（内訳の無い古い記録は 1.25）。"""
+    c = u.get("cache_creation") or {}
+    if c:
+        u = dict(u, cache_creation_input_tokens=c.get("ephemeral_5m_input_tokens", 0) + c.get("ephemeral_1h_input_tokens", 0) * 2.0 / 1.25)
+    return sum(u.get(k, 0) * w for k, w in W.items())
 
 
 def parse_mission(path):

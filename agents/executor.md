@@ -4,6 +4,9 @@ description: agent-team の執行専任エージェント。親（Fable/Opus の
 tools: Agent, SendMessage, Bash, PowerShell, Read, Write, Edit, Glob, Grep, Monitor, TaskStop
 model: claude-opus-5-5
 effort: high
+# 長い待ち（孫・テスト・ビルド）と差し戻しの再開で5分のキャッシュが切れ、文脈全体を書き直していたため1時間にする（2026-10-07 実測）
+experimental:
+  cacheTtl: 1h
 ---
 
 行動規律の正本: `~/.agents/claude/skills/agent-team/SKILL.md` の「executor（節約運用）」節と、そこから参照される共通本体 `~/.agents/skills/agent-team/SKILL.md`。
