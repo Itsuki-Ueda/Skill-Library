@@ -48,7 +48,7 @@ argument-hint: "<タスク内容> [light|full] [codex]"
 - **Codex**: codex-protocol.md の**文書レビュー形＋雛形 8a**（初回 effort＝§1）。再レビューは **resume 形＋雛形 8b**（effort=high）。session id を記録、指摘は `-o` から読む。
 
 ### plan-probe（Phase 4 初回ラウンドのみ・両レビューと並走）
-`plan-probe` エージェント（haiku 固定の測定器）に plan file のパスだけを渡す。
+`plan-probe` エージェント（Haiku 5.5・effort low 固定の測定器）に plan file のパスだけを渡す。
 返ってきた言い換え（変更対象／やらないこと／完了条件の判定手順化／迷った箇所）をプラン原文と突き合わせ、
 **ズレ＝曖昧箇所**として修正に流す。合否には数えない。プランを大幅に書き直したラウンドでは再実行してよい。
 

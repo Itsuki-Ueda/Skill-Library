@@ -5,11 +5,9 @@
 agent-team中は `~/.agents/claude/skills/agent-team/SKILL.md` と共通本体の分担を適用する。以下の通常セッション用の分担で上書きしない。
 自分のモデルに応じて条件分岐し、役割分担で動く。自分のモデル名は環境情報ブロック（`You are powered by the model named ...`）で毎回確認する。
 
-### 第1層: 調査の委譲 — モデル問わず常時、タスク種別でモデルをルーティング
-まとまった調査が必要なときは、読み取り専用サブエージェントに委譲する。モデルはタスク種別で選ぶ（根拠: `tasks/model-comparison-experiment.md`）
-
-- **列挙・棚卸し・存在確認**（ファイル横断スイープ / 命名規約の洗い出し / 使用箇所追跡 / 規模計測）→ `model: "haiku"`
-- **意味解釈・再現率が効く調査**（死蔵コード判定 / 重複探索 / セキュリティ調査 / 「まだ使われているか・施行されているか」系）→ `model: "sonnet"`
+### 第1層: 調査の委譲 — モデル問わず常時、Sonnet の researcher に委譲
+まとまった調査が必要なときは、読み取り専用サブエージェントに委譲する。モデルは種別を問わず `model: "sonnet"`（列挙・棚卸し・存在確認も含む。2026-10-08 人間の決定）。
+根拠: 2026-10-08 の調査ベンチ（難問12問）で、列挙問題の網羅率は Haiku 5.5 high が Sonnet 5.5 high を下回った（84/71/60% 対 92/72/88%）。Haiku 5.5 max は全体で Sonnet と同等の網羅率だが、所要時間が約4倍だった。
 
 #### 調査委譲ルール（厳守）
 - 調査委譲には `researcher` エージェント定義（`~/.agents/agents/researcher.md`）を必ず使う。
@@ -48,12 +46,12 @@ agent-team中は `~/.agents/claude/skills/agent-team/SKILL.md` と共通本体�
 - 実装は `coding-agent` エージェント定義（`~/.agents/agents/coding-agent.md`、model: claude-opus-5-5・effort: high。完了条件・スコープ規律・エスカレーション条件は定義側に記載）に仕様書を渡して委譲する。定義が使えない場合は同等の規律（ビルド・テスト通過が完了条件 / 一次デバッグは実装側 / 2回失敗・設計波及・複数モジュール横断でエスカレーション）をプロンプトに付与して `model: "opus"` で委譲する。
 - レビューは Fable が diff を直読。差し戻しは**同じエージェントに SendMessage で追加指示**を送り、合格までループ（文脈を保持したまま継続）。
 
-自分が **Fable 以外**（Opus / Sonnet / Haiku 等）の場合: フル・オーケストレーションは発動せず、実装・レビュー・判断は自分でやる。ただし第1層（まとまった調査の Haiku・Sonnet 委譲）は引き続き適用する。
+自分が **Fable 以外**（Opus / Sonnet / Haiku 等）の場合: フル・オーケストレーションは発動せず、実装・レビュー・判断は自分でやる。ただし第1層（まとまった調査の Sonnet 委譲）は引き続き適用する。
 
 | メインの自分 | 調査 | 実装 | レビュー/判断 |
 |---|---|---|---|
-| Fable | investigator(Haiku/Sonnet) に委譲（第1層の種別ルーティング） | coding-agent(Opus) に委譲 | Fable（自分） |
-| Opus | investigator(Haiku/Sonnet) に委譲（同上） | 自分でやる | 自分でやる |
-| Sonnet/Haiku 等 | investigator(Haiku/Sonnet) に委譲（同上） | 自分でやる | 自分でやる |
+| Fable | researcher(Sonnet) に委譲（第1層） | coding-agent(Opus) に委譲 | Fable（自分） |
+| Opus | researcher(Sonnet) に委譲（同上） | 自分でやる | 自分でやる |
+| Sonnet/Haiku 等 | researcher(Sonnet) に委譲（同上） | 自分でやる | 自分でやる |
 
 注: サブエージェントの推論量は定義 frontmatter の `effort:`（low/medium/high/xhigh/max または整数）で指定する。Agent ツールの呼び出し側からは effort を上書きできない（model のみ上書き可）。

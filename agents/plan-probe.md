@@ -1,8 +1,9 @@
 ---
 name: plan-probe
-description: プラン文書の曖昧さ測定プローブ。下位モデル（haiku固定）がプランを読んで自分の言葉で言い換え、その回答と原文のズレで曖昧箇所を露呈させる測定器。合否判定はしない（VERDICTなし）。ズレの判定と修正への反映は呼び出し側が行う。
+description: プラン文書の曖昧さ測定プローブ。下位モデル（Haiku 5.5・effort low 固定）がプランを読んで自分の言葉で言い換え、その回答と原文のズレで曖昧箇所を露呈させる測定器。合否判定はしない（VERDICTなし）。ズレの判定と修正への反映は呼び出し側が行う。
 tools: Read
 model: haiku
+effort: low
 ---
 
 行動規律の正本: `~/.agents/skills/team-plan-probe/SKILL.md`（team-plan-probe スキル）。

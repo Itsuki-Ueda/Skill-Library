@@ -17,10 +17,10 @@ routing:
   research:    { cli: codex, model: gpt-6-luna, effort: max, parallel_max: 6 }
   # 重要領域の重ね調査専用（dispatch「調査結果の採用」）。見落としの相関を下げる。試用中(2026-09-23〜)
   research-overlap: { agent: researcher, model: sonnet }   # effortはエージェント定義に従う(medium)
-  cc-research: { agent: researcher, enumerate: haiku, semantic: sonnet, parallel_max: 6 }  # フォールバック
+  cc-research: { agent: researcher, model: sonnet, parallel_max: 6 }  # フォールバック。列挙も含め全種別 Sonnet（2026-10-08）
   review:       { agent: reviewer }                  # Opus 5.5 / medium CCレビュアー(直接実行モードのフォールバック)
   # プラン曖昧さ測定プローブ（[3]初回ラウンド。正本=team-plan-probeスキル。測定器なので下位モデル固定）
-  plan-probe:       { agent: plan-probe }                             # CC Orchestrator用(haiku)
+  plan-probe:       { agent: plan-probe }                             # CC Orchestrator用(Haiku 5.5 / effort low)
   # Codexレビュアーの正本。gate1(Codex実装分の独立レビュー)とcc-worker実装分のレビューの両方で使う。
   codex-review: { cli: codex, model: gpt-6.1-sol, effort: medium }
 
