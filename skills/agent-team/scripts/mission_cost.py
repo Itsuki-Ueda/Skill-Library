@@ -134,7 +134,7 @@ def main():
     here = os.path.abspath(args[0]); want = set(args[1:])
     # worktree を渡されても、会話・Codex の記録は本体のリポジトリ（cwd が本体か worktree）で探す
     common = subprocess.run(["git", "-C", here, "rev-parse", "--path-format=absolute", "--git-common-dir"],
-                            capture_output=True, text=True).stdout.strip()
+                            capture_output=True, text=True, encoding="utf-8").stdout.strip()
     repo = os.path.abspath(os.path.dirname(common)) if common else here
     mdir = os.path.join(here, ".agents", "state", "missions")
     ms = [parse_mission(p) for p in glob.glob(mdir + "/M-*.md") + glob.glob(mdir + "/closed/M-*.md")]
