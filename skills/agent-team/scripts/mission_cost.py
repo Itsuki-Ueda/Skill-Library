@@ -1,18 +1,20 @@
 """agent-team: ミッション1件ごとの費用と品質の指標を、記録から集計する（memory 等には書かない。標準出力と台帳へ）。
 
-使い方: python mission_cost.py <リポジトリ> [M-005 M-006 ...] [--ledger <jsonl>]
+使い方: python mission_cost.py <リポジトリまたはその worktree> [M-005 M-006 ...] [--missing] [--ledger <jsonl>]
   ミッション省略時は missions/ と missions/closed/ の全件。台帳の既定は ~/.claude/agent-team-ledger.jsonl（追記）。
+  ミッションの記録は渡した場所から読み、会話・Codex の記録は本体のリポジトリ配下のものを数える。
+  --missing: closed/ のうち台帳にまだ無いミッションだけを記録する（[0] で付け忘れを拾う）。
 
 割り振り:
-  - Codex: ミッションファイルに書かれたセッション ID（UUID）の rollout の最終 total_token_usage。
+  - Codex: 対象リポジトリ配下で動いた rollout を、ミッションファイルに書かれたセッション ID（全桁または先頭）か、依頼文・作業場所に出たミッションの識別子で割り振る。値は最終 total_token_usage。
   - サブエージェント: ファイルに書かれた agent ID、または依頼文にミッション ID・タスク ID・作業場所名を含むもの。
   - 親: 呼び出しごとに、その呼び出しのツール入力・本文に出たミッションの識別子で割り振り、出なければ直前の割り振りを引き継ぐ。
     どのミッションにも当たらない分は「未割当」。
 作業時間: そのミッションに割り振った Claude の呼び出し時刻を並べ、間隔10分以内の区間だけを足す（人間の待ち・放置は含まない）。
-計画の形: ミッションの並列計画の「波: N」「最長の列: N段」と、executor の代数。
+計画の形: ミッションの並列計画の「ステップ数: N」「依存の深さ: N」（旧称「波」「最長の列」も読む）と、executor の代数。
 費用の換算: 通常入力1・キャッシュ読み0.1・キャッシュ書き1.25（1時間キャッシュは2.0）・出力5 の仮定（相対比較用。実際の料金表ではない）。
 """
-import glob, json, os, re, sys, collections
+import glob, json, os, re, subprocess, sys, collections
 from datetime import datetime
 
 UUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
@@ -37,8 +39,9 @@ def parse_mission(path):
     return {
         "id": mid, "path": path,
         "keys": {mid} | set(re.findall(TASK, s)) | set(re.findall(r"\.claude/worktrees/([\w.-]+)", s)),
-        # Codex は UUID 全体か、「Codex 01a10fa6」のような先頭8桁で書かれる（rollout のファイル名との部分一致で引く）
-        "codex": set(re.findall(UUID, s)) | set(re.findall(r"Codex[^0-9a-f\n]{0,3}([0-9a-f]{8})\b", s)), "agents": set(re.findall(r"agent (a[0-9a-f]{16})", s)),
+        # Codex は UUID 全体か、「Codex 01a10fa6」「session 01a119ac-cd80」のような先頭で書かれる（ID の前方一致で引く）。
+        # ID が書かれていない回も、依頼文にミッション・タスク・作業場所の名前があれば main で割り振る
+        "codex": set(re.findall(UUID, s)) | set(re.findall(r"(?:Codex|codex-review|session|セッション)[^0-9a-f\n]{0,12}([0-9a-f]{8}(?:-[0-9a-f]{4})?)\b", s)), "agents": set(re.findall(r"agent (a[0-9a-f]{16})", s)),
         "quality": {
             "tasks": len(rows),
             "review_rounds": sum(max(map(int, re.findall(r"\br(\d+)", r)), default=0) for r in rows),
@@ -49,26 +52,33 @@ def parse_mission(path):
             "integration_review_rounds": len(set(re.findall(r"統合レビュー[^\n]*?r(\d+)", s))),
             "human_decisions": len(re.findall(r"^- \d{4}-\d{2}-\d{2}[^\n]*人間", s, re.M)),
         },
-        # 計画の形: 並列計画の「波: N」「最長の列: N段」と、executor の代数（「N 代目」「第 N 代」の最大）
-        "plan": {"waves": num(r"波[:：]\s*(\d+)"), "critical_path": num(r"最長の列[:：]\s*(\d+)"),
+        # 計画の形: 並列計画の「ステップ数: N」「依存の深さ: N」（旧称「波 N」「最長の列 N 段」、コロン無しも読む）と、executor の代数（「N 代目」「第 N 代」の最大）
+        "plan": {"steps": num(r"(?:ステップ数|波)[:：]?\s*(\d+)"), "depth": num(r"(?:依存の深さ|最長の列)[:：]?\s*(\d+)"),
                  "executor_gens": num(r"(?:第\s*|\b)(\d+)\s*代(?:目)?")},
         "start": f"{times[0][0]} {times[0][1]}" if times else "", "end": f"{times[-1][0]} {times[-1][1]}" if times else "",
     }
 
 
-def codex_usage(ids):
-    tot = collections.Counter(); found = 0
-    files = glob.glob(os.path.expanduser("~/.codex/sessions/**/rollout-*.jsonl"), recursive=True)
-    for f in files:
-        sid = next((i for i in ids if i in os.path.basename(f)), None)
-        if not sid: continue
-        last = None
+def codex_rollouts(repo, norm):
+    """対象リポジトリ配下で動いた Codex の rollout を (session_id, 依頼文, 使用量の合計) で返す。"""
+    out = []
+    for f in glob.glob(os.path.expanduser("~/.codex/sessions/**/rollout-*.jsonl"), recursive=True):
+        sid = cwd = None; prompt = ""; last = None
         for l in open(f, encoding="utf-8", errors="ignore"):
-            if '"token_count"' not in l: continue
-            info = (json.loads(l).get("payload") or {}).get("info") or {}
-            last = info.get("total_token_usage") or last
-        if last: found += 1; tot.update({k: v for k, v in last.items() if isinstance(v, int)})
-    return tot, found
+            if sid is None:
+                o = json.loads(l); p = o.get("payload") or {}
+                if o.get("type") != "session_meta": break
+                sid, cwd = p.get("id"), p.get("cwd") or ""
+                if not (norm(cwd) + os.sep).startswith(norm(repo) + os.sep): break
+                continue
+            if '"token_count"' in l:
+                last = ((json.loads(l).get("payload") or {}).get("info") or {}).get("total_token_usage") or last
+            elif len(prompt) < 20000 and '"role":"user"' in l.replace(" ", ""):
+                p = json.loads(l).get("payload") or {}
+                t = " ".join(c.get("text", "") for c in p.get("content") or [] if isinstance(c, dict))
+                if not t.startswith("# AGENTS.md"): prompt += t
+        if sid and last: out.append((sid, cwd + " " + prompt, last))
+    return out
 
 
 def claude_calls(path, sidechain=False):
@@ -119,9 +129,19 @@ def rewrite_units(prev, ts, u, gap=300, min_tokens=10000):
 def main():
     args = sys.argv[1:]; ledger = os.path.expanduser("~/.claude/agent-team-ledger.jsonl")
     if "--ledger" in args: i = args.index("--ledger"); ledger = args[i + 1]; del args[i:i + 2]
-    repo = os.path.abspath(args[0]); want = set(args[1:])
-    mdir = os.path.join(repo, ".agents", "state", "missions")
+    missing = "--missing" in args
+    if missing: args.remove("--missing")
+    here = os.path.abspath(args[0]); want = set(args[1:])
+    # worktree を渡されても、会話・Codex の記録は本体のリポジトリ（cwd が本体か worktree）で探す
+    common = subprocess.run(["git", "-C", here, "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                            capture_output=True, text=True).stdout.strip()
+    repo = os.path.abspath(os.path.dirname(common)) if common else here
+    mdir = os.path.join(here, ".agents", "state", "missions")
     ms = [parse_mission(p) for p in glob.glob(mdir + "/M-*.md") + glob.glob(mdir + "/closed/M-*.md")]
+    if missing:
+        done = {(r.get("repo"), r.get("mission")) for r in map(json.loads, open(ledger, encoding="utf-8"))} if os.path.exists(ledger) else set()
+        want = {m["id"] for m in ms if os.path.basename(os.path.dirname(m["path"])) == "closed" and (os.path.basename(repo), m["id"]) not in done}
+        if not want: print("台帳に漏れなし"); return
     enc = re.sub(r"[^A-Za-z0-9]", "-", repo)
     # フォルダ名は日本語が全部 "-" になり別リポジトリと衝突するので、記録の cwd が対象リポジトリ配下のものだけ使う
     norm = lambda x: os.path.normcase(os.path.abspath(x))
@@ -149,10 +169,14 @@ def main():
             for ts, u, _x in claude_calls(sf, sidechain=True):
                 res[owner]["sub"].update({t: units(u)}); res[owner]["sub_n"].update({t: 1}); res[owner]["ts"].append(ts)
                 res[owner]["rewrite"].update({t: rewrite_units(prev, ts, u)}); prev = ts
+    cx_tot = collections.defaultdict(collections.Counter); cx_n = collections.Counter()
+    for sid, text, last in codex_rollouts(repo, norm):
+        owner = next((m["id"] for m in ms if any(sid.startswith(i) for i in m["codex"])), None) or             next((m["id"] for m in ms if any(k in text for k in m["keys"])), None)
+        if owner: cx_n[owner] += 1; cx_tot[owner].update({k: v for k, v in last.items() if isinstance(v, int)})
     with open(ledger, "a", encoding="utf-8") as lg:
         for m in sorted(ms, key=lambda x: x["id"]):
             if want and m["id"] not in want: continue
-            r = res[m["id"]]; cx, n = codex_usage(m["codex"])
+            r = res[m["id"]]; cx, n = cx_tot[m["id"]], cx_n[m["id"]]
             row = {"repo": os.path.basename(repo), "mission": m["id"], "start": m["start"], "end": m["end"],
                    "measured_at": datetime.now().isoformat(timespec="minutes"),
                    "active_hours": active_hours(r["ts"]),
@@ -170,7 +194,7 @@ def main():
             sub = " ".join(f"{t}={v['units'] / 1e6:.1f}M" for t, v in row["subagents"].items())
             rw = " ".join(f"{k}={v / 1e6:.1f}M" for k, v in row["idle_rewrite"].items()) or "なし"
             print(f"{m['id']} {m['start']}〜{m['end']}（作業 {row['active_hours']}h・{m['plan']}） | Claude {row['claude_units'] / 1e6:6.1f}M（親 {row['parent']['units'] / 1e6:.1f}M・平均ctx {row['parent']['avg_ctx']:,} / {sub}）"
-                  f" | 待った直後の書き直し {rw} | Codex 入力 {cx['input_tokens'] / 1e6:.1f}M（{n}/{len(m['codex'])}件） | 品質 {m['quality']}")
+                  f" | 待った直後の書き直し {rw} | Codex 入力 {cx['input_tokens'] / 1e6:.1f}M（{n}件） | 品質 {m['quality']}")
     print(f"未割当（親）: {unassigned['units'] / 1e6:.1f}M・{unassigned['calls']}回 / 台帳: {ledger}")
 
 
