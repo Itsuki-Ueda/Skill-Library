@@ -31,7 +31,7 @@ CC × Codex 共通で運用しているスキル/エージェント/グローバ
 | CC 用スキルラッパー | `claude/skills/<name>/` | agent-team: `~/.claude/skills/agent-team` をこのラッパーへ個別Junction。descriptionにトリガーを持たせ、共通本体を参照 |
 | Codex 用スキルラッパー | `codex/skills/<name>/` | `~/.codex/skills/<name>` を**個別に** Junction（`.system/` は Codex 管理なので触らない） |
 | Codex 固有ルール | `codex/AGENTS.md` | `~/.codex/AGENTS.md` は参照指示だけの短いファイル |
-| 共通ドキュメント（codex-protocol, test-policy） | `docs/` | `~/.claude/docs` ディレクトリ自体が Junction |
+| 共通ドキュメント（codex-protocol, test-policy, ui-policy） | `docs/` | `~/.claude/docs` ディレクトリ自体が Junction |
 
 `~/.claude/CLAUDE.md` の中身はこの 2 行だけであるべき:
 
