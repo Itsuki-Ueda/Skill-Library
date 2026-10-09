@@ -104,8 +104,10 @@ worktree は寿命を持つ資源。PRレビュー用だけでなく、実装・
 
 ### node_modules を junction/symlink で親と共有している worktree
 worktree に親リポジトリの `node_modules` への junction（Windows）/symlink を張って共有するのは可
-（npm install の時間・ディスク節約、オフラインサンドボックス対応）。ただし **closeout 時は
+（npm install の時間・ディスク節約）。ただし **closeout 時は
 必ずリンクを先に外す**（§3 step 0）。外さずに削除すると親の node_modules が破壊される。
+**Codex（CLI worker）に渡す worktree ではリンクを張らず、sandbox の外で `npm ci` してから渡す。**
+リンク先は sandbox の作業場所の外なので、vite・tsc のキャッシュの書き込みが `EPERM`（Windows）・`EROFS`（Linux）で失敗する（2026-10-09 実測）。
 
 ### closeout（役目を終えたら即片付け・マージ限定ではない）
 削除条件が成立し KEEP が無ければ、その場で closeout（手順 §3 / スクリプト §4）。契機:

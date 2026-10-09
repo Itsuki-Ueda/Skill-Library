@@ -8,14 +8,18 @@
 #   cx-run.sh resume --session <id> --prompt <file> --out <file> --model <m> --effort <e> [--cwd <worktree>]  # §3c
 #     --cwd あり: 実装の差し戻し（workspace-write）。--cwd なし: レビュー・調査の再開（read-only。対象リポジトリ内から呼ぶ）
 #     resume は元の sandbox を引き継がない（指定しないと config.toml の既定で動く）ので、どちらも毎回明示する。
+#   --net（impl・--cwd ありの resume だけ）: sandbox のネットワークを許す。Linux（クラウド）の sandbox はネットワークを
+#     禁じると 127.0.0.1 の待ち受けも拒否する（listen EPERM）ので、開発サーバー・ブラウザのテスト・E2E・撮影を
+#     worker が流す契約でだけ付ける（理由は契約の「ネットワーク」欄に書く）。Windows では待ち受けが通るので不要。
 #
 # 生成物: <out>（最終メッセージ）/ <out>.err（ヘッダ・作業ログ）/ <out>.exit（終了コード）。
 # 完了時に1行サマリ（exit / session / out サイズ）を出す。長時間になり得るので run_in_background で起動する。
 set -u
 kind=${1:?kind: impl|ask|review|resume}; shift
-cwd= prompt= out= model= effort= target= session=
+cwd= prompt= out= model= effort= target= session= net=
 while [ $# -gt 0 ]; do
   case $1 in
+    --net) net=1; shift; continue ;;
     --cwd) cwd=$2 ;; --prompt) prompt=$2 ;; --out) out=$2 ;; --model) model=$2 ;;
     --effort) effort=$2 ;; --target) target=$2 ;; --session) session=$2 ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
@@ -26,6 +30,7 @@ need() { [ -n "$1" ] || { echo "$2 is required for $kind" >&2; exit 2; }; }
 need "$out" --out; need "$model" --model; need "$effort" --effort
 cfg=(-c "model=$model" -c "model_reasoning_effort=$effort")
 stdin=/dev/null
+[ -n "$net" ] && cfg+=(-c "sandbox_workspace_write.network_access=true")
 
 case $kind in
   impl)

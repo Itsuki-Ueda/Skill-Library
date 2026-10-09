@@ -2,6 +2,7 @@
 
 Mission: M-XXX
 実装者: <worker | hard-worker | cc-worker>（dispatch.mdのルーティング判定結果）
+ネットワーク: <不要 | 要: workerが流す開発サーバー・ブラウザのテスト・E2E・撮影の名前>（要なら cx-run.sh に --net）
 依存: <先行タスクID / なし>
 
 ## Context

@@ -72,9 +72,16 @@ codex exec -s read-only resume <session id> -o <out> -c 'model=<model>' -c 'mode
   - ユーザー単位インストールのツール（`%LOCALAPPDATA%\Programs` 配下の Python 等）が見つからない → Program Files 配下のツールを使うか、親が実行する。
   - 古い esbuild 系の設定読込（例: Vite 7）が親フォルダを辿って `Cannot read directory "../../..": Access is denied` で止まる → 依存をロックファイルどおりに入れ直す（Vite 8 系では再現しない）。
   - `dotnet test` / `dotnet build` の暗黙復元が `%APPDATA%\NuGet\NuGet.Config` を読めず失敗する → 親が `dotnet restore` を済ませ、worker は `--no-restore` を付ける。
-  - WPF 等 Windows デスクトップのビルドが `%LOCALAPPDATA%\Microsoft SDKs` を読めず `MSB4184` で失敗する → そのビルドは親が実行する（ライブラリ・テストプロジェクト単体は `--no-restore` で通る）。
+  - WPF 等 Windows デスクトップのビルドが `%LOCALAPPDATA%\Microsoft SDKs` を読めず `MSB4184` で失敗する → このフォルダだけ権限の継承が切れていて `CodexSandboxUsers` に権限が無いのが原因（2026-10-09、0.159.1）。`icacls "%LOCALAPPDATA%\Microsoft SDKs" /grant "<PC名>\CodexSandboxUsers:(OI)(CI)RX"` で読み取りだけ足すと、WPF のビルドと見えない作業スペースでの画面確認が通る（PC ごとに1回。人間の承認を得て行う）。`%APPDATA%\NuGet` も同じく継承が切れている（上の `--no-restore` で避ける）。
+- 別の作業場所で起動した Codex のビルドが残した常駐プロセス（MSBuild のノード・コンパイラーのサーバー）を次のビルドが使い回し、その作業場所に書けず `CS2012`・`MSB3191` で失敗する → `~/.codex/config.toml` の `[shell_environment_policy.set]` に `MSBUILDDISABLENODEREUSE = "1"`・`UseSharedCompilation = "false"` を置く（2026-10-09 実測）。
+- sandbox 内のプロセスは前面を取れない（`SetForegroundWindow` が効かない）→ 本物の前面・入力が要る確認は親が sandbox の外で流す。
+- sandbox 内で例外を受け止めずに落ちたプロセスは、Windows のエラーのウィンドウを人の画面に出し、OK を押すまで残る → worker が流す確認用のプログラムは、失敗を例外で落とさず終了コードで返す。
 - sandbox 内で起動したプロセスは、sandbox 外の権限では止められない（アクセス拒否）。sandbox 内でも `taskkill /T` と WMI での子孫探索は効かない → 同じ sandbox から `Stop-Process -Id <PID>` で止める（PID は `netstat -ano`）。開発サーバは常駐させず、起動から停止まで行うスクリプト（agent-team の `capture.sh`）に任せる。
 - sandbox 内で Chromium 系ブラウザを起動すると子プロセスが落ちる → `--no-sandbox` を付ける（開くのは localhost のみ）。
+
+### (f) restricted sandbox（workspace-write）の既知の制限（Linux・クラウド環境・2026-10-09 実測）
+- ネットワークを禁じていると 127.0.0.1 の待ち受けも拒否される（`listen EPERM`）。開発サーバー・ブラウザのテスト（Vitest のブラウザモード等）・E2E・撮影が起動前に止まる → その確認を worker に流させる契約でだけ `cx-run.sh` に `--net` を付ける（`sandbox_workspace_write.network_access=true`）。クラウドの環境はネットワークが Full なので、付けると外部にも出られる。必要の無い契約には付けない。
+- worktree の `node_modules` が本体へのリンクだと、vite・tsc のキャッシュの書き込みが作業場所の外への書き込みになり `EROFS`（Windows では `EPERM`）で失敗する → Codex に渡す worktree は `node_modules` をリンクにせず、親が `npm ci` してから渡す（git-ops）。
 
 ## 4. timeout
 - 全呼び出し **600000ms**（PowerShell ツール上限）。高 effort のレビューは 1 回 2〜5 分が実測（gpt-5.5 xhigh 時）。300s では不足する。
