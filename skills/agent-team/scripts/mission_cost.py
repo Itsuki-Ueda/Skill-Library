@@ -11,6 +11,7 @@
   - 親: 呼び出しごとに、その呼び出しのツール入力・本文に出たミッションの識別子で割り振り、出なければ直前の割り振りを引き継ぐ。
     どのミッションにも当たらない分は「未割当」。
 作業時間: そのミッションに割り振った Claude の呼び出し時刻を並べ、間隔10分以内の区間だけを足す（人間の待ち・放置は含まない）。
+品質: レビューの回数・不合格・P0〜P3 は、割り振った Codex の rollout のうち `VERDICT` で始まる返答から数える（計画・コード・統合レビューを含む。誰が表を書いても揃うように、表の文字は使わない）。
 計画の形: ミッションの並列計画の「ステップ数: N」「依存の深さ: N」（旧称「波」「最長の列」も読む）と、executor の代数。
 費用の換算: 通常入力1・キャッシュ読み0.1・キャッシュ書き1.25（1時間キャッシュは2.0）・出力5 の仮定（相対比較用。実際の料金表ではない）。
 """
@@ -33,7 +34,6 @@ def units(u):
 def parse_mission(path):
     s = open(path, encoding="utf-8").read(); mid = os.path.basename(path)[:-3]
     rows = [l for l in s.splitlines() if re.match(r"\|\s*T-", l)]
-    rev = " ".join(r.split("|")[5] if r.count("|") > 6 else r for r in rows)
     times = sorted(re.findall(r"^- (\d{4}-\d{2}-\d{2}) (\d{2})", s, re.M))
     num = lambda pat: max(map(int, re.findall(pat, s)), default=None)
     return {
@@ -45,9 +45,6 @@ def parse_mission(path):
         "quality": {
             "tasks": len(rows),
             "review_rounds": sum(max(map(int, re.findall(r"\br(\d+)", r)), default=0) for r in rows),
-            "review_fails": rev.count("fail"),
-            "P1": sum(int(n or 1) for n in re.findall(r"P1(?:×(\d+))?", rev)),
-            "P2": sum(int(n or 1) for n in re.findall(r"P2(?:×(\d+))?", rev)),
             "plan_review_rounds": len(set(re.findall(r"計画レビュー r(\d+)", s))),
             "integration_review_rounds": len(set(re.findall(r"統合レビュー[^\n]*?r(\d+)", s))),
             "human_decisions": len(re.findall(r"^- \d{4}-\d{2}-\d{2}[^\n]*人間", s, re.M)),
@@ -60,10 +57,10 @@ def parse_mission(path):
 
 
 def codex_rollouts(repo, norm):
-    """対象リポジトリ配下で動いた Codex の rollout を (session_id, 依頼文, 使用量の合計) で返す。"""
+    """対象リポジトリ配下で動いた Codex の rollout を (session_id, 依頼文, 使用量の合計, レビューの集計) で返す。"""
     out = []
     for f in glob.glob(os.path.expanduser("~/.codex/sessions/**/rollout-*.jsonl"), recursive=True):
-        sid = cwd = None; prompt = ""; last = None
+        sid = cwd = None; prompt = ""; last = None; rv = collections.Counter(); seen = set()
         for l in open(f, encoding="utf-8", errors="ignore"):
             if sid is None:
                 o = json.loads(l); p = o.get("payload") or {}
@@ -77,7 +74,13 @@ def codex_rollouts(repo, norm):
                 p = json.loads(l).get("payload") or {}
                 t = " ".join(c.get("text", "") for c in p.get("content") or [] if isinstance(c, dict))
                 if not t.startswith("# AGENTS.md"): prompt += t
-        if sid and last: out.append((sid, cwd + " " + prompt, last))
+            elif '"VERDICT' in l:
+                p = json.loads(l).get("payload") or {}
+                t = "".join(c.get("text", "") for c in p.get("content") or [] if isinstance(c, dict)).lstrip()
+                if p.get("role") != "assistant" or not t.startswith("VERDICT") or t in seen: continue
+                seen.add(t); rv.update({"reviews": 1, "fails": t.startswith("VERDICT: fail")})
+                rv.update({k: len(re.findall(r"\[" + k + r"\]", t)) for k in ("P0", "P1", "P2", "P3")})
+        if sid and last: out.append((sid, cwd + " " + prompt, last, rv))
     return out
 
 
@@ -170,9 +173,10 @@ def main():
                 res[owner]["sub"].update({t: units(u)}); res[owner]["sub_n"].update({t: 1}); res[owner]["ts"].append(ts)
                 res[owner]["rewrite"].update({t: rewrite_units(prev, ts, u)}); prev = ts
     cx_tot = collections.defaultdict(collections.Counter); cx_n = collections.Counter()
-    for sid, text, last in codex_rollouts(repo, norm):
+    cx_q = collections.defaultdict(collections.Counter)
+    for sid, text, last, rv in codex_rollouts(repo, norm):
         owner = next((m["id"] for m in ms if any(sid.startswith(i) for i in m["codex"])), None) or             next((m["id"] for m in ms if any(k in text for k in m["keys"])), None)
-        if owner: cx_n[owner] += 1; cx_tot[owner].update({k: v for k, v in last.items() if isinstance(v, int)})
+        if owner: cx_n[owner] += 1; cx_tot[owner].update({k: v for k, v in last.items() if isinstance(v, int)}); cx_q[owner].update(rv)
     with open(ledger, "a", encoding="utf-8") as lg:
         for m in sorted(ms, key=lambda x: x["id"]):
             if want and m["id"] not in want: continue
@@ -189,12 +193,12 @@ def main():
                    "idle_rewrite": {k: round(v) for k, v in r["rewrite"].items() if v},
                    "codex": {"sessions_found": n, "sessions_listed": len(m["codex"]), "input": cx["input_tokens"],
                              "cached": cx["cached_input_tokens"], "output": cx["output_tokens"]},
-                   "quality": m["quality"]}
+                   "quality": m["quality"] | {k: cx_q[m["id"]][k] for k in ("reviews", "fails", "P0", "P1", "P2", "P3")}}
             lg.write(json.dumps(row, ensure_ascii=False) + "\n")
             sub = " ".join(f"{t}={v['units'] / 1e6:.1f}M" for t, v in row["subagents"].items())
             rw = " ".join(f"{k}={v / 1e6:.1f}M" for k, v in row["idle_rewrite"].items()) or "なし"
             print(f"{m['id']} {m['start']}〜{m['end']}（作業 {row['active_hours']}h・{m['plan']}） | Claude {row['claude_units'] / 1e6:6.1f}M（親 {row['parent']['units'] / 1e6:.1f}M・平均ctx {row['parent']['avg_ctx']:,} / {sub}）"
-                  f" | 待った直後の書き直し {rw} | Codex 入力 {cx['input_tokens'] / 1e6:.1f}M（{n}件） | 品質 {m['quality']}")
+                  f" | 待った直後の書き直し {rw} | Codex 入力 {cx['input_tokens'] / 1e6:.1f}M（{n}件） | 品質 {row['quality']}")
     print(f"未割当（親）: {unassigned['units'] / 1e6:.1f}M・{unassigned['calls']}回 / 台帳: {ledger}")
 
 
