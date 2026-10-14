@@ -55,3 +55,9 @@ agent-team中は `~/.agents/claude/skills/agent-team/SKILL.md` と共通本体�
 | Sonnet/Haiku 等 | researcher(Sonnet) に委譲（同上） | 自分でやる | 自分でやる |
 
 注: サブエージェントの推論量は定義 frontmatter の `effort:`（low/medium/high/xhigh/max または整数）で指定する。Agent ツールの呼び出し側からは effort を上書きできない（model のみ上書き可）。
+
+## バックグラウンド実行（2026-10-14 人間の指示）
+- 時間のかかるコマンド（Codex の起動・評価の実行・ビルドなど）を裏で動かすときは、Bash ツールの `run_in_background: true` を使う。完了すると通知が届く。
+- コマンドの中で `&` や `( ... &)` を使って自分で切り離さない。切り離したプロセスは完了しても通知が届かず、終わったことに気づけない。
+  根拠: 2026-10-14、Codex の調査 3 本を `&` で同時に起動し、12:33〜12:40 に終わっていたのに約 2 時間気づかなかった。
+- 複数を同時に走らせたいときは、`run_in_background: true` の Bash 呼び出しを 1 つのメッセージに並べる（1 本ずつ別の呼び出しにする）。
