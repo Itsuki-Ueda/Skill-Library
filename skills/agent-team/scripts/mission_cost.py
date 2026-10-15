@@ -130,6 +130,9 @@ def rewrite_units(prev, ts, u, gap=300, min_tokens=10000):
 
 
 def main():
+    # Windows の Python は標準出力が cp932 になり、パイプ越しに読むと日本語が化ける（台帳ファイルは utf-8 で正しく書けている）
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     args = sys.argv[1:]; ledger = os.path.expanduser("~/.claude/agent-team-ledger.jsonl")
     if "--ledger" in args: i = args.index("--ledger"); ledger = args[i + 1]; del args[i:i + 2]
     missing = "--missing" in args
