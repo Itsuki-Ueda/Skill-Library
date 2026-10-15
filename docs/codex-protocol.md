@@ -81,6 +81,7 @@ codex exec -s read-only resume <session id> -o <out> -c 'model=<model>' -c 'mode
 
 ### (f) restricted sandbox（workspace-write）の既知の制限（Linux・クラウド環境・2026-10-09 実測）
 - ネットワークを禁じていると 127.0.0.1 の待ち受けも拒否される（`listen EPERM`）。開発サーバー・ブラウザのテスト（Vitest のブラウザモード等）・E2E・撮影が起動前に止まる → その確認を worker に流させる契約でだけ `cx-run.sh` に `--net` を付ける（`sandbox_workspace_write.network_access=true`）。クラウドの環境はネットワークが Full なので、付けると外部にも出られる。必要の無い契約には付けない。
+- コマンドが終わると、そのコマンドの中で起動したプロセス（バックグラウンドで起動した開発サーバー等）も消える（2026-10-15 実測）→ 起動と操作を別のコマンドに分けない。起動 → 確認 → 停止を1回のコマンドで行う入口を用意して、それを流させる（verify-ops「実行場所」）。
 - worktree の `node_modules` が本体へのリンクだと、vite・tsc のキャッシュの書き込みが作業場所の外への書き込みになり `EROFS`（Windows では `EPERM`）で失敗する → Codex に渡す worktree は `node_modules` をリンクにせず、親が `npm ci` してから渡す（git-ops）。
 
 ## 4. timeout
