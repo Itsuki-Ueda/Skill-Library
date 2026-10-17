@@ -25,7 +25,7 @@ agent-teamで進行中の開発は、後続の追加実装・修正・再開に�
 2. 本流・resumeでは `references/defaults.yaml` と `.agents/config/team.yaml` を読む。設定の解決はラッパーに従う。
    会話の圧縮後と、別の会話で継続するときも、次のdispatch前に1回読み直す。要約や前の会話に残ったmodel・effortは使わない。
 3. `.agents/state/STATE.md` → 対象ミッション → `.agents/state/MEMORY.md`。履歴全量は読まない。
-4. 工程に必要な資料だけ読む: 分解・実行はdispatch、S判定はexpress、状態操作はstate-layer、契約作成はtemplates。実行プロトコルは該当経路だけ読む。
+4. 工程に必要な資料だけ読む: 分解・実行はdispatch、S判定はexpress、状態操作はstate-layer、契約作成はtemplates、作業の型は[1]で選んだ1ファイル。実行プロトコルは該当経路だけ読む。
    dispatchと契約の雛形は、既読でも**ミッションの[3]を始めるたびに読み直す**。手順は運用中に更新されるので、長く続く会話では古い版のまま進んでしまう（E8）。
 
 作業ツリーに `.agents/` が無い場合は、`git log --all --oneline -- .agents` と既定ブランチの状態ファイルを調べる。
@@ -38,7 +38,7 @@ Git操作は `~/.agents/skills/git-ops/SKILL.md` に従う。
 | --- | --- |
 | `/agent-team {依頼}` | 前提確認・intake → S/M/L判定 |
 | `/agent-team init` | 下記の敷設手順 |
-| `/agent-team status` | 行数、STATE/BACKLOG/queueを読み、現状・超過を報告するだけ。記憶整理・session記帳・commitはしない |
+| `/agent-team status` | 行数、STATE/BACKLOG/queueを読み、現状・超過を `references/templates/REPORT_TEMPLATE.md` の順番で報告するだけ。記憶整理・session記帳・commitはしない |
 | `/agent-team resume` | 下記の引継ぎ手順 |
 
 - **S / express**: 対象ファイル確定、設計判断不要、diff一読でレビュー可能。`references/express.md` へ。
@@ -60,6 +60,7 @@ Git操作は `~/.agents/skills/git-ops/SKILL.md` に従う。
 - 完了条件: 必須設定・状態が読め、上限内または許容された先送りである。
 
 ### [1] Intake
+- 依頼が作業の型に当たるなら、その型を読む（今ある型: 不具合修正 `references/types/bug-fix.md`）。型は[2]調査の問い・[3]契約の既定欄・[6]検証の中身を決める。当たらない依頼は型なしで進める。
 - Goal、検証可能なAcceptance、制約、Human Escalationを確定する。不明点だけ人間に確認する。「ミッションの単位」に照らして分ける・まとめるべきなら、ここで人間に提案する。
 - `references/templates/MISSION_TEMPLATE.md` からM-xxxを採番し、STATEに索引を追加する。
 - ブランチはgit-opsの命名に従う（例: `feat/m-xxx-summary`）。
@@ -67,14 +68,14 @@ Git操作は `~/.agents/skills/git-ops/SKILL.md` に従う。
 - 完了条件: 成功条件と作業範囲を文書化した。
 
 ### [2] 調査（必要時）
-- 調査担当へ `~/.agents/skills/team-researcher/SKILL.md`、質問・範囲・除外範囲を渡す。
+- 調査担当へ `~/.agents/skills/team-researcher/SKILL.md`、質問・範囲・除外範囲を渡す。型があれば型の「調査の問い」を質問に入れる。
 - 独立した調査は並列化できる。重要領域の意図的な重複で矛盾を検出する。報告の採用規律はdispatchを参照。
 - 読み取り専用担当の結果は親が `queue/research/` に保存する。
 - 誤っていると計画全体を覆す前提は、権限内の小さな実験で検証する（根拠E1）。
 - 完了条件: 判断に使う主張に根拠がある。
 
 ### [3] 分解・計画レビュー
-- Goal / Acceptance / Allowed paths / 依存 / 実装者を骨子にする。契約はdispatch前に `GENERAL_TEMPLATE.md` へ清書する。委任されたexecutorがいれば清書を任せる。
+- Goal / Acceptance / Allowed paths / 依存 / 実装者を骨子にする。型があれば型の「契約の既定欄」を入れる。契約はdispatch前に `GENERAL_TEMPLATE.md` へ清書する。委任されたexecutorがいれば清書を任せる。
 - テストを書く契約では、骨子段階から変異リストを作る。**どのファイルのどの箇所を何に変えるか**を特定し、機構の削除・置換では維持すべき挙動の変異も列挙する（E2）。
 - Acceptanceに登場するデータ・状態・設定値の生産者/消費者表を埋める。空欄ならdispatchしない。表の効果は数ミッション後に件数で点検する（E3）。
 - `references/dispatch.md` で担当を選び、依存とAllowed pathsからステップ（同時に起動できるタスクの組）を組む。**Allowed pathsが交差しなくても、検証が他タスクのパスを読み込むなら作業ツリーは競合資源**であり、レーンをworktreeで分ける（dispatch「並列実行の規律」）。直列化は競合資源を名指しする。集約ファイルは親の担当とする。
@@ -111,6 +112,7 @@ Git操作は `~/.agents/skills/git-ops/SKILL.md` に従う。
 ### [6] 統合・完了ゲート
 - タスク間の接続・共有資源・順序依存がある場合は統合後の整合性を独立レビューで確認する。契約と実際の変更から判断し、表の行の有無だけで省略しない。既存レビューに組み込める（別呼び出し必須ではない）。
 - レーン運用ではレーンのブランチを計画の順序で合流させてから進む。未コミット変更ゼロを確認し、統合後HEADで `verify.post_change` と `verify.smoke` を実行する。実時間依存のテストは単独で再実行する。
+- 型があれば型の「検証」を完了ゲートに含める。
 - テストを書いた場合は未実施分から変異を数件抜き取り、対応テストの失敗を確認して復元する。[5]で実施済み・対象不変なら再実施不要。
 - 実行担当はラッパーに従い、対象版・コマンド・終了コード・必要な出力を記録する。実行の有無と検証内容の適切さは別々に確認する。自己申告だけでは合格にしない。
 - 失敗は原因を切り分け[5]へ戻す。ゲートを緩めない。コード変更後は影響するレビュー・検証を更新する。
@@ -127,7 +129,7 @@ Git操作は `~/.agents/skills/git-ops/SKILL.md` に従う。
 - git-opsに従いミッション由来の一時worktree・統合済みブランチを後片付けする。
 - 未統合・ロック等で保持する場合は理由と次の削除条件を記録する。未処理を黙って放置しない。
 - 費用と品質の記録（ローカル台帳 `~/.claude/agent-team-ledger.jsonl`）と撮影画像の掃除は、[7]の `close-mission.sh` が済ませている。その出力の1行を最終報告に載せる。改善の効果はこの台帳で前後比較する。台帳には作業時間（人間の待ちを除く）・ステップ数・依存の深さ・executorの代数も載るので、精度と完遂速度の両方で比べる。
-- 変更、検証、レビュー達成状況、例外受入・残課題、保持資源を報告する。報告に書く件数・回数・時間は、git logと記録ファイルで裏取りしてから確定値にする。裏取りしていない値は出典を「自己申告」と明記する。
+- 最終報告は `references/templates/REPORT_TEMPLATE.md` の順番で書く（1文目は判断待ちの件数。変更・検証・レビュー達成状況・例外受入・残課題・保持資源は末尾の詳細に置く）。件数・回数・時間は記録で数え直してから書き、数え直していない値は「自己申告」と書く。
 - 完了条件: `close-mission.sh` の出力の1行（台帳の記録）と、後片付けの結果を載せた最終報告を出した。
 
 ## init
