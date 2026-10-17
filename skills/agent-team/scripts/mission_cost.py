@@ -8,6 +8,7 @@
 割り振り:
   - Codex: 対象リポジトリ配下で動いた rollout を、ミッションファイルに書かれたセッション ID（全桁または先頭）か、依頼文・作業場所に出たミッションの識別子で割り振る。値は最終 total_token_usage。
   - サブエージェント: ファイルに書かれた agent ID、または依頼文にミッション ID・タスク ID・作業場所名を含むもの。
+  - 会話の記録は、作業場所が対象リポジトリ配下のものに加え、ミッションに書かれた agent ID（agentId 表記も可）の親の会話も数える（親が別フォルダーで動いた場合）。
   - 親: 呼び出しごとに、その呼び出しのツール入力・本文に出たミッションの識別子で割り振り、出なければ直前の割り振りを引き継ぐ。
     どのミッションにも当たらない分は「未割当」。
 作業時間: そのミッションに割り振った Claude の呼び出し時刻を並べ、間隔10分以内の区間だけを足す（人間の待ち・放置は含まない）。
@@ -41,7 +42,7 @@ def parse_mission(path):
         "keys": {mid} | set(re.findall(TASK, s)) | set(re.findall(r"\.claude/worktrees/([\w.-]+)", s)),
         # Codex は UUID 全体か、「Codex 01a10fa6」「session 01a119ac-cd80」のような先頭で書かれる（ID の前方一致で引く）。
         # ID が書かれていない回も、依頼文にミッション・タスク・作業場所の名前があれば main で割り振る
-        "codex": set(re.findall(UUID, s)) | set(re.findall(r"(?:Codex|codex-review|session|セッション)[^0-9a-f\n]{0,12}([0-9a-f]{8}(?:-[0-9a-f]{4})?)\b", s)), "agents": set(re.findall(r"agent (a[0-9a-f]{16})", s)),
+        "codex": set(re.findall(UUID, s)) | set(re.findall(r"(?:Codex|codex-review|session|セッション)[^0-9a-f\n]{0,12}([0-9a-f]{8}(?:-[0-9a-f]{4})?)\b", s)), "agents": set(re.findall(r"agent(?:Id|_id| ID)?[\s:=]*(a[0-9a-f]{16})\b", s)),
         "quality": {
             "tasks": len(rows),
             "review_rounds": sum(max(map(int, re.findall(r"\br(\d+)", r)), default=0) for r in rows),
@@ -153,6 +154,12 @@ def main():
     norm = lambda x: os.path.normcase(os.path.abspath(x))
     sessions = [f for d in glob.glob(os.path.expanduser("~/.claude/projects/") + enc + "*") for f in glob.glob(d + "/*.jsonl")
                 if (lambda c: c and (norm(c) + os.sep).startswith(norm(repo) + os.sep))(session_cwd(f))]
+    # 親セッションが別フォルダーで動いた場合（Remote Control・別フォルダーからの起動）も拾う:
+    # ミッションに書かれた agent ID の記録を全プロジェクトから探し、その親セッションを加える
+    for aid in set().union(*(m["agents"] for m in ms)):
+        for sf in glob.glob(os.path.expanduser(f"~/.claude/projects/*/*/subagents/agent-{aid}.jsonl")):
+            f = os.path.dirname(os.path.dirname(sf)) + ".jsonl"
+            if os.path.exists(f) and f not in sessions: sessions.append(f)
     res = {m["id"]: {"parent": collections.Counter(), "sub": collections.Counter(), "sub_n": collections.Counter(), "ts": [], "rewrite": collections.Counter()} for m in ms}
     unassigned = collections.Counter()
     for f in sessions:

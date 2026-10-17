@@ -2,7 +2,7 @@
 
 クラウドの Claude Code セッションに Codex CLI を常駐させ、コードレビューの依頼と結果を Git だけで受け渡す。
 端末側のセッションはクラウドのセッションへ直接メッセージを送れず、クラウドのセッションも返信できないため、往復はすべて Git に載せる。
-実測（2026-10-17、試験用リポジトリで 3 回）: 依頼の push から結果の検知まで 63〜84 秒。約 53 分放置した後も待ち受けと Codex の認証は残っていた。
+実測（2026-10-17、試験用リポジトリ）: 依頼の push から結果の検知まで 63〜84 秒（1 件ずつ処理していた版では、同時に出した 2 件目が 133 秒）。約 53 分放置した後も待ち受けと Codex の認証は残っていた。
 
 ## 置き場所（対象リポジトリの中のブランチ）
 
@@ -28,13 +28,14 @@
 3. 待ち受けを始める: `bash ~/.agents/skills/agent-team-cc/scripts/wait-request.sh <結果ブランチ>` を Bash の `run_in_background: true` で起動する（`&` で切り離さない）。
 
 待ち受けが終わったら:
-- `REQUEST id=<依頼ID> head=<...> base=<...>` が出たら、下の「依頼 1 件の処理」を行う。
-- `NO_REQUEST` でも処理の後でも、すぐ同じコマンドで待ち受けを起動し直す。これを続ける。PR は作らない。コードは直さない。
+- `REQUEST id=<依頼ID> head=<...> base=<...>` の行（複数あり得る）ごとに、下の「依頼 1 件の処理」の 1〜3 を**すぐ**行う（Codex は並行で走らせる。1 件の完了を待ってから次を始めない）。
+- 起動し終えたら、Codex の完了を待たずに同じコマンドで待ち受けを起動し直す。`NO_REQUEST` のときも起動し直す。これを続ける。
+- Codex の完了通知が来たら、その依頼の 4〜6 を行う。PR は作らない。コードは直さない。
 
 依頼 1 件の処理:
 1. `git fetch origin <head> <base>`
-2. `git worktree add --detach /tmp/review-<依頼ID> origin/<head>`（結果ブランチの作業ツリーを汚さない）
-3. `bash ~/.agents/skills/agent-team/scripts/cx-run.sh review --cwd /tmp/review-<依頼ID> --target "--base origin/<base>" --out /tmp/<依頼ID>.md --model gpt-6.1-sol --effort medium` を `run_in_background: true` で起動し、完了を待つ。
+2. `git worktree add --detach /tmp/review-<依頼ID> origin/<head>`（結果ブランチの作業ツリーを汚さない。このフォルダーが処理中の印になり、待ち受けが同じ依頼を二重に拾わない）
+3. `bash ~/.agents/skills/agent-team/scripts/cx-run.sh review --cwd /tmp/review-<依頼ID> --target "--base origin/<base>" --out /tmp/<依頼ID>.md --model gpt-6.1-sol --effort medium` を `run_in_background: true` で起動する（完了通知が来たら 4 へ）。
 4. 結果ブランチに `reviews/<依頼ID>.md` を作る:
 
    ```
@@ -50,7 +51,9 @@
 
    Codex が失敗した（終了コード 0 以外・出力が空・認証切れ）ときも、`codex:` 行に実際の値を書き、「## Codex の出力」の代わりに「## 失敗」節へ `.err` の末尾 30 行を載せて push する（依頼側が待ち続けないように）。
 5. `git add reviews/<依頼ID>.md && git commit -m "review: <依頼ID>" && git push origin <結果ブランチ>`
-6. `git worktree remove --force /tmp/review-<依頼ID>`
+6. `git worktree remove --force /tmp/review-<依頼ID>`（push の後に消す。先に消すと待ち受けが同じ依頼を拾い直す）
+
+複数の依頼の 4〜6 が重なったら 1 件ずつ順に行う（同じ結果ブランチへの commit・push がぶつからないように）。push が先行の push で拒否されたら `git pull --rebase origin <結果ブランチ>` してから push し直す。
 
 ## 既知の制約
 
