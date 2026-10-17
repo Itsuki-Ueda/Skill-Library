@@ -32,6 +32,8 @@ description: "試験中の agent-team 派生。プロジェクトの AGENTS.md�
 
 `routing.codex-review` が `session: git` のとき、コードレビュー（team-code-reviewer）を次の形で行う。手順の正本は `references/codex-session.md`。
 
+`session: local` のときは常駐セッションを使わず、agent-team どおり Orchestrator のマシンで `cx-run.sh review` をその場で回す（Codex がローカルで使える個人のプロジェクト向け。下の 1〜5 と「立ち上げ」は不要）。プロジェクトの team.yaml に `routing: { codex-review: { session: local } }` と書いて切り替える。
+
 1. **準備の確認**（[0] 前提確認で、ミッションごとに 1 回）: `bash ~/.agents/skills/agent-team-cc/scripts/wait-review.sh --repo <リポジトリ> --ready --result-branch <result_branch> --timeout 0`。`git fetch` 1 回なので、セッションを探し回らない。READY の時刻が古いだけでは止まったと判定しない（約 4 時間前の READY でも応答した実例がある）。READY が無ければ下の「立ち上げ」を行い、届くまでのレビューは 5 の縮退で進める（作業は止めない）。
 2. **依頼**: レビュー対象（作業ツリーの現在の状態）をスナップショットとして push し、依頼を出す:
    `bash ~/.agents/skills/agent-team-cc/scripts/request-review.sh --repo <作業場所> --id <依頼ID> --base <比較元のcommit> [--paths <対象パス>...]`
@@ -45,7 +47,7 @@ Orchestrator の直読・変異の抜き取り・計測は agent-team から変�
 
 ## 立ち上げ（init と、READY が無いとき）
 
-- agent-team の init の最後に、Codex 専用セッションの立ち上げを加える。READY が届いたら敷設完了とし、`.agents/config/team.yaml` の `routing.codex-review.result_branch` に結果ブランチ名を書く。
+- agent-team の init の最後に、Codex 専用セッションの立ち上げを加える（`session: local` のプロジェクトでは不要）。READY が届いたら敷設完了とし、`.agents/config/team.yaml` の `routing.codex-review.result_branch` に結果ブランチ名を書く。
 - 起動できる立場（クラウドセッションを起動できるツールを持つセッション）なら Claude が起動する。できなければ人間に頼む。どちらも手順は `references/codex-session.md`「立ち上げ」で、最初に送る指示は次の 1 行に固定する:
   `~/.agents/skills/agent-team-cc/references/codex-session.md の「常駐セッションの手順」に従う。結果ブランチは <result_branch>。`
 - 人間に頼むことは 2 つだけ: リポジトリをクラウドから取り込めるようにする（別アカウントなら共同編集者に追加）ことと、Codex の device-auth の承認。
