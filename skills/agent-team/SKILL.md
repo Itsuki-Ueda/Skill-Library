@@ -25,7 +25,7 @@ agent-teamで進行中の開発は、後続の追加実装・修正・再開に�
 2. 本流・resumeでは `references/defaults.yaml` と `.agents/config/team.yaml` を読む。設定の解決はラッパーに従う。
    会話の圧縮後と、別の会話で継続するときも、次のdispatch前に1回読み直す。要約や前の会話に残ったmodel・effortは使わない。
 3. `.agents/state/STATE.md` → 対象ミッション → `.agents/state/MEMORY.md`。履歴全量は読まない。
-4. 工程に必要な資料だけ読む: 分解・実行はdispatch、[4]〜[6]はexecute、S判定はexpress、状態操作はstate-layer、契約作成はtemplates、作業の型は[1]で選んだ1ファイル。実行プロトコルは該当経路だけ読む。
+4. 工程に必要な資料だけ読む: 分解・実行はdispatch、[4]〜[6]はexecute、S判定はexpress、状態操作はstate-layer、契約作成はtemplates、作業の型は[1]で選んだ型のファイル（2つ当たれば両方）。実行プロトコルは該当経路だけ読む。
    dispatchと契約の雛形は、既読でも**ミッションの[3]を始めるたびに読み直す**。手順は運用中に更新されるので、長く続く会話では古い版のまま進んでしまう（E8）。
 
 作業ツリーに `.agents/` が無い場合は、`git log --all --oneline -- .agents` と既定ブランチの状態ファイルを調べる。

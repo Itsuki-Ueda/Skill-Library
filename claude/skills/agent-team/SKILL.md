@@ -14,7 +14,7 @@ agent-team中の分担は本書と共通本体を適用し、通常セッショ�
 - モデル・effortは事前定義を使う。毎dispatchの再照合や人間確認を増やさない。設定変更時に定義・対応経路を確認する。
 - `~/.agents/docs/codex-protocol.md` は、CLIの起動に失敗したとき・sandboxの制限に当たったとき・`cx-run.sh` に無い形が要るときだけ読む。
 - CLIの起動は `bash ~/.agents/skills/agent-team/scripts/cx-run.sh`（impl / ask / review / resume）を既定とし、コマンドを手で組み立てない。プロンプトはファイルに書いて渡す。Bashツールで `run_in_background` 起動する。`<out>`・`<out>.err`・`<out>.exit` を同スクリプトが作り、完了時にsession IDを1行で出す。
-- CLIの共通規律はdispatchを優先し、プロトコルの既定モデル・修正回数・親の直接実装への切替で上書きしない。
+- CLIの共通規律はdispatchを優先する。codex-protocolと食い違ったらdispatchに従う。
 - `agent:` はAgentツールで名前指定して起動し、継続は同じAgentへのSendMessage。role skillの正本パスと契約/対象を必ず渡す。Plugin経由（クラウド）では名前に `skill-library:` が付く（例: `skill-library:coding-agent`）。
 - 非同期起動し、CLIのsession ID・`-o` 出力・エラーログ・終了コードファイル（`<out>.exit`）のパスを記録する。回収は完了通知を既定とする。起動元のexecutorが交代して通知を受けられない場合だけ、後任は `<out>.exit` の出現を待機手段（Monitor等）で1回待ち、**終了コード0かつ `-o` が空でない**ことで完了と判定する。定期的に見に行かない。`-o` の中身の合否（NEED-DECISION等）は完了判定とは別に読む。usage limit・タイムアウト・中断時に `-o` が残るかは未確認（2026-09-22時点、codex-cli 0.153.4）。
 - Windowsのgit `ref:path` はPowerShellで全体を引用する。Git Bashが必要ならMSYS_NO_PATHCONV=1を使う。

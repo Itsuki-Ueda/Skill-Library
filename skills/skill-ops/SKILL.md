@@ -25,7 +25,7 @@ CC × Codex 共通で運用しているスキル/エージェント/グローバ
 | 汎用スキル（git-ops, agent-team, memory-ops, skill-ops 等） | `skills/<name>/` | CC: `~/.claude/skills/<name>` Junction（agent-teamは下記CCラッパー経由） / Codex: `~/.agents/skills/` をネイティブ読取 |
 | 役割規律（team-worker, team-researcher, team-code-reviewer, team-plan-reviewer, team-plan-probe） | `skills/team-*/` | CC: `agents/*.md` ラッパー / Codex: `codex/agents/*.toml` ラッパー + `codex/skills/*` ラッパー |
 | CC サブエージェント定義 | `agents/*.md` | `~/.claude/agents` ディレクトリ自体が Junction |
-| CC スラッシュコマンド | `commands/*.md` | `~/.claude/commands` ディレクトリ自体が Junction |
+| CC スラッシュコマンド | `commands/*.md`（2026-10-17 に全件削除して今は無い。足すときはディレクトリごと作る） | `~/.claude/commands` ディレクトリ自体が Junction |
 | CC 固有ルール | `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` は `@import` 2 行だけ |
 | Codex カスタム Agent 定義 | `codex/agents/*.toml` | `~/.codex/agents` ディレクトリ自体が Junction |
 | CC 用スキルラッパー | `claude/skills/<name>/` | agent-team: `~/.claude/skills/agent-team` をこのラッパーへ個別Junction。descriptionにトリガーを持たせ、共通本体を参照 |

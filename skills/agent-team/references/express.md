@@ -8,7 +8,7 @@
 - 共通本体[0]の前提確認は行う。簡略化するのは契約と記帳であり、必要な実行検証は省略しない。
 
 ## 手順
-1. 作業の型（`types/`）に当たるなら、その型の[3]と[6]の欄を契約と検証に入れる。
+1. 作業の型（`~/.agents/skills/agent-team/references/types/`）に当たるなら、その型の[3]と[6]の欄を契約と検証に入れる。
    `templates/EXPRESS_TEMPLATE.md` のGoal / Acceptance / Allowed paths / Verificationを埋め、queue/tasks/T-E-xxx.mdへ保存する。この手順と雛形は、既読でもT-E-xxxを始めるたびに読み直す（E8）。
    画面に表示されるファイルを変える、またはモックがある場合は「画面確認」欄も埋める。要否・モックの扱い・撮影方法はdispatch「画面確認（前倒し）」に従う（expressでも省略しない）。
 2. ハーネスのexpress担当へ契約とteam-worker規約を渡す。session IDと成果物を記録する。
@@ -17,7 +17,7 @@
 5. 契約外変更なしを確認し、verify.post_changeとverify.smokeを実行する。テスト契約に変異があれば適用・失敗・復元を確認する。
 6. 親がレビュー・検証した内容だけをcommitする。変更が入ったら影響するレビューと検証を更新する。
 7. STATEのLogにT-E-xxxの結果を1行記録し、状態変更をcommitする。ミッションファイルは作らない。
-8. 変更・検証・commitを報告し、資源を作った場合はgit-opsに従って後片付けする。
+8. `~/.agents/skills/agent-team/references/templates/REPORT_TEMPLATE.md` の順番で報告し（expressは台帳に記録しないので、5の台帳の1行は無い）、資源を作った場合はgit-opsに従って後片付けする。
 
 対象ファイルの増加、設計判断の発生、修正上限超過ならMへ昇格する。
 GENERAL_TEMPLATEで契約を更新し、必要な調査・計画レビュー（初回probeを含む）・人間承認を行ってからミッション工程を続ける。
