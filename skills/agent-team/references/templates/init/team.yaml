@@ -1,8 +1,7 @@
 # /agent-team のプロジェクト設定（差分ファイル）。
 # ここに書くのは「このプロジェクトで上書きしたい項目」と「プロジェクト固有のverify」だけ。
 # routing/limitsの既定値の正本はスキル側 references/defaults.yaml（全プロジェクト共通・1発反映）。
-# ハーネスに応じてrouting / codex_routingをdefaultsへ項目単位で上書きする。
-# CLIモデル値はyaml、native agentのモデル値はtomlが正本。毎dispatchの照合は不要。
+# routingはdefaultsへ項目単位で上書きする。CLIモデル値はyaml、Agentのモデル値はエージェント定義が正本。毎dispatchの照合は不要。
 
 # --- 上書き例（必要になったらコメントを外して使う） ---
 # routing:
@@ -11,9 +10,6 @@
 # limits:
 #   fix_rounds_task: 4
 #   fix_rounds_plan: 2                   # プランレビューの往復を絞る
-
-# codex_routing:
-#   worker: { parallel_max: 2 }          # native agentのmodel/effortはtomlで管理
 
 # --- プロジェクト固有（必須・init時に必ず記入） ---
 # 完了ゲートで実行するコマンド。未記入のままミッションを回さない。

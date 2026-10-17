@@ -1,5 +1,5 @@
 # /agent-team のグローバル既定値（正本）。全プロジェクト共通。
-# CLIのモデル値はyaml、native agentのモデル値はtomlが正本。経路別の値の差は許容する。
+# CLIのモデル値はyaml、Agentのモデル値はエージェント定義（~/.agents/agents/*.md）が正本。
 # 既存の値を維持。設定変更時だけ参照経路を確認し、毎dispatchの照合・人間確認を追加しない。
 # プロジェクト側 .agents/config/team.yaml に同じキーがあればそちらが優先（差分上書き）。
 # codex系で model/effort が未定義に落ちた場合の最終フォールバックは codex-protocol.md §1。
@@ -27,23 +27,6 @@ routing:
   # 執行系（[4]〜[6]の進行管理をミッション単位で担うexecutorサブエージェント。親のコンテキスト節約）
   # Orchestratorが Fable / Opus のときに使う（Opus は2026-10-05から試行）。それ以外は委譲せず直接実行
   executor:    { agent: executor }                 # モデル・effortはエージェント定義に従う(Opus 5.5 / high)
-
-# Orchestrator が Codex のときのルーティング。運用手順の正本は ~/.agents/codex/skills/agent-team/SKILL.md。
-# `agent:` = Codex custom agent 名（~/.agents/codex/agents/<name>.toml。model/effort は toml が正本）
-# `cc:`    = Claude Code をサブスク用ゲートウェイ経由で呼ぶ（--agent <cc> --model <model> --effort <effort>）
-# 経路未定義は親へ返す。native実行をroutingのCLIへ暗黙フォールバックしない。
-codex_routing:
-  express:      { agent: team-worker }                              # sol / high（team-worker 共用）
-  worker:       { agent: team-worker, parallel_max: 5 }
-  hard-worker:  { cc: coding-agent, model: claude-opus-5-5, effort: high }    # 難度レーン
-  cc-worker:    { cc: coding-agent, model: claude-opus-5-5, effort: high }    # 環境制約レーンも同じ CC レーン
-  research:     { agent: researcher, parallel_max: 6 }
-  # research-overlap は未定義（Codex指揮時は使わない。使うなら cc: researcher を追加する）
-  review:       { cc: reviewer, model: claude-opus-5-5, effort: medium }  # Codex 実装分のクロスベンダーレビュー
-  codex-review: { agent: reviewer }                                 # CC 実装分のレビュー
-  plan-review:  { cc: reviewer, model: claude-opus-5-5, effort: high }  # 分解文書レビュー(team-plan-reviewer 名指し)
-  plan-probe:   { agent: plan-probe }                               # luna / low
-  # executor は Codex 時は使わない（直接実行モード。完了ゲートは Orchestrator 自身）
 
 limits:
   fix_rounds_express: 2

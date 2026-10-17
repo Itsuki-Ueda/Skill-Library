@@ -20,8 +20,8 @@ Git運用・Git author設定・スキル統合運用ルール）は正本側に�
 
 - サブエージェントは、ユーザーが委譲を求めた場合、選択中のSkillが委譲を要求する場合、または独立実行が品質・速度を明確に改善する場合だけ使う。小さな単純作業で機械的に起動しない。
 - 読み取り専用のコードベース調査、影響分析、依存経路追跡は、カスタムAgent `researcher` を名前指定して起動する。
-- 承認済み仕様に基づく実装は、カスタムAgent `coding` を名前指定して起動する。agent-team中の担当は同スキルの事前定義を優先する。
-- 計画、差分、commit、PRの独立レビューは、新しいカスタムAgent `reviewer` を名前指定して起動する。agent-team中は同スキルのレビュー経路（expressの親レビューを含む）を優先する。
+- 承認済み仕様に基づく実装は、カスタムAgent `coding` を名前指定して起動する。
+- 計画、差分、commit、PRの独立レビューは、新しいカスタムAgent `reviewer` を名前指定して起動する。
 - `task_name`、表示ラベル、nicknameだけでAgentを選んだことにしない。利用可能な起動インターフェースでcustom agent type/nameを指定する。
 - `default`、`worker`、`explorer` を名前付きカスタムAgentの代替として黙って使わない。代替した場合は親の最終報告で明示する。
 - 親オーケストレーターは、スコープ、設計判断、Agentへの入力、結果集約、検証、commit、push、PR、mergeを管理する。
@@ -30,7 +30,7 @@ Git運用・Git author設定・スキル統合運用ルール）は正本側に�
 
 ## Claude Code subscription bridge
 
-- CodexからClaude Codeを呼ぶ直前に `~/.agents/skills/claude-code-subscription/SKILL.md` を読み、実行環境に対応する手順を使う。
+- CodexからClaude Codeを呼ぶ直前に `~/.agents/codex/skills/claude-code-subscription/SKILL.md` を読み、実行環境に対応する手順を使う。
 - 直接実行、APIキー課金へのフォールバック、秘密情報の出力・プロンプトへの混入を禁止する。
 - 認証・利用可否・エラー報告・一時ファイルの扱いは同スキルに従う。
 

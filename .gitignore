@@ -4,12 +4,6 @@
 *.pem
 *.key
 
-# agmsg のマシン固有ランタイム状態（メッセージDB・PID・チーム登録・venv）
-skills/agmsg/db/messages.db
-skills/agmsg/run/
-skills/agmsg/teams/
-skills/agmsg/.agmsg
-
 # 一般
 node_modules
 dist

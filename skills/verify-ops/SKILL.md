@@ -9,7 +9,7 @@ description: "プロジェクトに「アプリを実際に動かして動作を
 スキル（以下「verify」）にまとめる。verify を読めば、初めてそのアプリを触るエージェントでも、
 タスクの途中で同じ手順を流せる状態にする。
 
-agent-team には依存しない。agent-team・autodev・通常のセッションは、verify があれば読んで使う側。
+agent-team には依存しない。agent-team・通常のセッションは、verify があれば読んで使う側。
 
 ## 置き場所と公開範囲
 

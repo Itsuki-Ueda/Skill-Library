@@ -22,14 +22,14 @@ CC × Codex 共通で運用しているスキル/エージェント/グローバ
 | 種別 | 正本の場所（リポジトリ内） | ツール側 |
 |---|---|---|
 | 共通ルール | `AGENTS.md` | CC: `~/.claude/CLAUDE.md` から `@import` / Codex: `~/.codex/AGENTS.md` の参照指示 |
-| 汎用スキル（git-ops, agent-team, handoff, autodev, agmsg, claude-code-subscription, skill-ops 等） | `skills/<name>/` | CC: `~/.claude/skills/<name>` Junction（agent-teamは下記CCラッパー経由） / Codex: `~/.agents/skills/` をネイティブ読取 |
+| 汎用スキル（git-ops, agent-team, memory-ops, skill-ops 等） | `skills/<name>/` | CC: `~/.claude/skills/<name>` Junction（agent-teamは下記CCラッパー経由） / Codex: `~/.agents/skills/` をネイティブ読取 |
 | 役割規律（team-worker, team-researcher, team-code-reviewer, team-plan-reviewer, team-plan-probe） | `skills/team-*/` | CC: `agents/*.md` ラッパー / Codex: `codex/agents/*.toml` ラッパー + `codex/skills/*` ラッパー |
 | CC サブエージェント定義 | `agents/*.md` | `~/.claude/agents` ディレクトリ自体が Junction |
 | CC スラッシュコマンド | `commands/*.md` | `~/.claude/commands` ディレクトリ自体が Junction |
 | CC 固有ルール | `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` は `@import` 2 行だけ |
 | Codex カスタム Agent 定義 | `codex/agents/*.toml` | `~/.codex/agents` ディレクトリ自体が Junction |
 | CC 用スキルラッパー | `claude/skills/<name>/` | agent-team: `~/.claude/skills/agent-team` をこのラッパーへ個別Junction。descriptionにトリガーを持たせ、共通本体を参照 |
-| Codex 用スキルラッパー | `codex/skills/<name>/` | `~/.codex/skills/<name>` を**個別に** Junction（`.system/` は Codex 管理なので触らない） |
+| Codex 用スキルラッパー・Codex 専用スキル（claude-code-subscription） | `codex/skills/<name>/` | `~/.codex/skills/<name>` を**個別に** Junction（`.system/` は Codex 管理なので触らない） |
 | Codex 固有ルール | `codex/AGENTS.md` | `~/.codex/AGENTS.md` は参照指示だけの短いファイル |
 | 共通ドキュメント（codex-protocol, test-policy, ui-policy） | `docs/` | `~/.claude/docs` ディレクトリ自体が Junction |
 
@@ -51,19 +51,18 @@ CC × Codex 共通で運用しているスキル/エージェント/グローバ
    ```powershell
    (Get-Item "$env:USERPROFILE\.claude\skills\<X>").Attributes -band [IO.FileAttributes]::ReparsePoint
    ```
-   → 非ゼロならJunction。Targetを確認し、その正本を編集する。汎用は `~/.agents/skills/<X>`、agent-teamのCC側は `~/.agents/claude/skills/agent-team`、Codex側は `~/.agents/codex/skills/agent-team`。
+   → 非ゼロならJunction。Targetを確認し、その正本を編集する。汎用は `~/.agents/skills/<X>`、agent-teamのCC側は `~/.agents/claude/skills/agent-team`、Codex 用は `~/.agents/codex/skills/<X>`。
 2. **ラッパー判定**: ファイル冒頭を読み「正本を読め」「行動規律の正本」等の参照指示があればラッパー。
    → 本文は正本ファイル（`~/.agents/skills/team-*/SKILL.md` 等）にある。編集はそちらへ。
 3. **実体判定**: 上記どちらでもなければ CC/Codex 専用の実体。そのまま編集してよい。
    ただし現在この扱いになるのは Codex 管理の `~/.codex/skills/.system/` くらいで、
    自分たちの定義ファイルはすべてリポジトリ側にある。
-   （`~/.claude/commands/cxloop.md` は Junction 経由で実体は `~/.agents/commands/cxloop.md`）
 
 ## 編集ルール
 
 - **Junction 経由のファイルを編集した場合、diff は `~/.agents/` 側に出る**（実体だから）。想定内。慌ててロールバックしない。
 - **ラッパーに本文を書き足さない**。CC agents md / Codex toml / Codex skills wrapper は「参照 + ハーネス固有差分」だけ。
-  行動規律・ワークフローの本文追加は正本（`~/.agents/skills/team-*/` や `~/.agents/skills/autodev/SKILL.md`）に書く。
+  行動規律・ワークフローの本文追加は正本（`~/.agents/skills/team-*/` や `~/.agents/skills/agent-team/SKILL.md`）に書く。
 - CC agents の frontmatter（`tools:`, `model:`）と Codex toml の `model`/`model_reasoning_effort`/`sandbox_mode` は
   **各形式が要求するメタデータ**なのでラッパー側に残す。これは重複ではない。
 - 「ラッパーが薄いから充実させよう」と本文を書き始めない。**薄いのが正しい設計**（重複回避の主目的）。
@@ -158,7 +157,7 @@ author の local 設定は `git-setup` スキルを参照。
 
 迷ったら「その 1 行を、勤務先の同僚と見知らぬ第三者の両方が読んで困るか」で決め、困るなら載せない。
 **業務に固有の知見（案件名・重点確認項目・案件の癖）はこの repo ではなく、そのプロジェクトの `AGENTS.md` に書く**
-（memory-ops の書き先判定。2026-09-07 に autodev の references から 1 件を実際に移した）。
+（memory-ops の書き先判定。2026-09-07 に旧 autodev の references から 1 件を実際に移した）。
 
 ### 機械検査の仕組み
 
