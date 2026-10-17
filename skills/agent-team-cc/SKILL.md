@@ -47,7 +47,8 @@ Orchestrator の直読・変異の抜き取り・計測は agent-team から変�
 
 ## 立ち上げ（init と、READY が無いとき）
 
-- agent-team の init の最後に、Codex 専用セッションの立ち上げを加える（`session: local` のプロジェクトでは不要）。READY が届いたら敷設完了とし、`.agents/config/team.yaml` の `routing.codex-review.result_branch` に結果ブランチ名を書く。
+- init では最初に人間へ 1 回だけ「Codex レビューをこの PC で回すか（`session: local`）、クラウド常駐に頼むか（`session: git`）」を聞き、Claude が team.yaml に書く。PC で Codex が使えるプロジェクトなら local を勧める。
+- `session: git` のときは、agent-team の init の最後に Codex 専用セッションの立ち上げを加える。READY が届いたら敷設完了とし、`.agents/config/team.yaml` の `routing.codex-review.result_branch` に結果ブランチ名を書く。
 - 起動できる立場（クラウドセッションを起動できるツールを持つセッション）なら Claude が起動する。できなければ人間に頼む。どちらも手順は `references/codex-session.md`「立ち上げ」で、最初に送る指示は次の 1 行に固定する:
   `~/.agents/skills/agent-team-cc/references/codex-session.md の「常駐セッションの手順」に従う。結果ブランチは <result_branch>。`
 - 人間に頼むことは 2 つだけ: リポジトリをクラウドから取り込めるようにする（別アカウントなら共同編集者に追加）ことと、Codex の device-auth の承認。
