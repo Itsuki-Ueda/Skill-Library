@@ -10,13 +10,13 @@ agent-team中の分担は本書と共通本体を適用し、通常セッショ�
 
 ## 設定と起動
 - `~/.agents/skills/agent-team/references/defaults.yaml` のroutingを、プロジェクトteam.yamlのroutingで項目単位に上書きする。limitsも同様。未知キーは無視する。
-- CLIのmodel/effortは解決したyaml、Agentのmodelはagent定義が正本（yamlの明示指定があればそれを渡す）。CLI値が未定義の場合だけcodex-protocol §1へフォールバックする。
+- CLIのmodel/effortは解決したyaml、Agentのmodelはagent定義が正本（yamlの明示指定があればそれを渡す）。CLI値が未定義なら推測で埋めず、設定を直す。
 - モデル・effortは事前定義を使う。毎dispatchの再照合や人間確認を増やさない。設定変更時に定義・対応経路を確認する。
-- `cli: codex` を実行するときだけ `~/.agents/docs/codex-protocol.md` を読む。実装は§3d、調査・計画/コードレビューは§3a、継続は§3c（実装にはsandbox指定）。
+- `~/.agents/docs/codex-protocol.md` は、CLIの起動に失敗したとき・sandboxの制限に当たったとき・`cx-run.sh` に無い形が要るときだけ読む。
 - CLIの起動は `bash ~/.agents/skills/agent-team/scripts/cx-run.sh`（impl / ask / review / resume）を既定とし、コマンドを手で組み立てない。プロンプトはファイルに書いて渡す。Bashツールで `run_in_background` 起動する。`<out>`・`<out>.err`・`<out>.exit` を同スクリプトが作り、完了時にsession IDを1行で出す。
 - CLIの共通規律はdispatchを優先し、プロトコルの既定モデル・修正回数・親の直接実装への切替で上書きしない。
 - `agent:` はAgentツールで名前指定して起動し、継続は同じAgentへのSendMessage。role skillの正本パスと契約/対象を必ず渡す。Plugin経由（クラウド）では名前に `skill-library:` が付く（例: `skill-library:coding-agent`）。
-- 非同期起動し、CLIのsession ID・`-o` 出力・エラーログ・終了コードファイル（codex-protocol §3d の `<out>.exit`）のパスを記録する。回収は完了通知を既定とする。起動元のexecutorが交代して通知を受けられない場合だけ、後任は `<out>.exit` の出現を待機手段（Monitor等）で1回待ち、**終了コード0かつ `-o` が空でない**ことで完了と判定する。定期的に見に行かない。`-o` の中身の合否（NEED-DECISION等）は完了判定とは別に読む。usage limit・タイムアウト・中断時に `-o` が残るかは未確認（2026-09-22時点、codex-cli 0.153.4）。
+- 非同期起動し、CLIのsession ID・`-o` 出力・エラーログ・終了コードファイル（`<out>.exit`）のパスを記録する。回収は完了通知を既定とする。起動元のexecutorが交代して通知を受けられない場合だけ、後任は `<out>.exit` の出現を待機手段（Monitor等）で1回待ち、**終了コード0かつ `-o` が空でない**ことで完了と判定する。定期的に見に行かない。`-o` の中身の合否（NEED-DECISION等）は完了判定とは別に読む。usage limit・タイムアウト・中断時に `-o` が残るかは未確認（2026-09-22時点、codex-cli 0.153.4）。
 - Windowsのgit `ref:path` はPowerShellで全体を引用する。Git Bashが必要ならMSYS_NO_PATHCONV=1を使う。
 - 別のworktree（他ミッション・レーン）のファイルを書くときは、先に `EnterWorktree(path=<そのworktree>)` で切り替えてから書き、終わったら `EnterWorktree` で元のworktreeへ戻る。デスクトップアプリのworktreeセッションでは、別worktreeへのWrite/Editがフックで止められるため。止められてもBashやコピーで回り込まない（WriteとBashを同時に送らない）。レーンのexecutorは自分のレーンのworktreeに `EnterWorktree` してから作業する。
 
@@ -34,7 +34,7 @@ executor運用では、独立性はCodexレビュー、別ベンダーの視点�
 
 ## executor（節約運用）
 - 親がFableまたはOpusなら[3]の承認後にrouting.executorへ[4]〜[6]をミッション単位で委任する（Opus親は2026-10-05から試行。効果は `mission_cost.py` の台帳で、executor の有無で前後比較する）。例外はexecutorを起動できないときだけ。規模による例外は設けない（小さいものはIntakeでexpressに振られており、本節の対象外。「1タスクだから」で親が直接進行管理しない）。それ以外（Sonnet等）なら親が進行管理する。
-- 渡すものは共通本体・dispatch・本書のパス、ミッション、分解骨子、契約清書の指示、停止条件。
+- 渡すものは共通本体・`references/execute.md`・dispatch・本書のパス、ミッション、分解骨子、契約清書の指示、停止条件。
 - executorはミッションとqueueへ記帳できる。STATE縮約は親だけ。
 - executorはCLI worker・CLI reviewerに加え、routingのagent（coding-agent・reviewer）もAgentツールで自分が起動する（`run_in_background=false` で結果を待つ）。親は中継しない。同じステップのタスクは1つのメッセージにAgent呼び出しを並べて同時に起動する（1体ずつ起動して待たない。2026-10-07実測で並行動作を確認）。
 - 差し戻しは同じエージェントへSendMessageで送り、末尾に「報告の全文を `<out>.report.md` に書き、最後に空の `<out>.done` を作ってから報告を返す」と添える（`<out>` はCLIの `-o` と同じく作業ツリーの外）。送ったら番を終えず、Bashツール（timeout 600000）で `bash ~/.agents/skills/agent-team/scripts/wait-done.sh <out>.done` を実行して待つ（TIMEOUTなら再実行）。番を終えると自動催促でexecutorが終わり、結果を受け取れないため（2026-10-06実測）。同じステップの差し戻しはSendMessageをまとめて送り、全員の `.done` を1回の `wait-done.sh` に並べる。どれか1つが出た時点で返るので、その分を処理してから残りを同じコマンドで待ち直す。DONE後は `<out>.report.md` を正とし、遅れて届いた正式報告は親へ転送しない。

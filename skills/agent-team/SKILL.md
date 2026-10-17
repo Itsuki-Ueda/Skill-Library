@@ -25,7 +25,7 @@ agent-teamで進行中の開発は、後続の追加実装・修正・再開に�
 2. 本流・resumeでは `references/defaults.yaml` と `.agents/config/team.yaml` を読む。設定の解決はラッパーに従う。
    会話の圧縮後と、別の会話で継続するときも、次のdispatch前に1回読み直す。要約や前の会話に残ったmodel・effortは使わない。
 3. `.agents/state/STATE.md` → 対象ミッション → `.agents/state/MEMORY.md`。履歴全量は読まない。
-4. 工程に必要な資料だけ読む: 分解・実行はdispatch、S判定はexpress、状態操作はstate-layer、契約作成はtemplates、作業の型は[1]で選んだ1ファイル。実行プロトコルは該当経路だけ読む。
+4. 工程に必要な資料だけ読む: 分解・実行はdispatch、[4]〜[6]はexecute、S判定はexpress、状態操作はstate-layer、契約作成はtemplates、作業の型は[1]で選んだ1ファイル。実行プロトコルは該当経路だけ読む。
    dispatchと契約の雛形は、既読でも**ミッションの[3]を始めるたびに読み直す**。手順は運用中に更新されるので、長く続く会話では古い版のまま進んでしまう（E8）。
 
 作業ツリーに `.agents/` が無い場合は、`git log --all --oneline -- .agents` と既定ブランチの状態ファイルを調べる。
@@ -37,7 +37,7 @@ Git操作は `~/.agents/skills/git-ops/SKILL.md` に従う。
 | 呼び出し | 動作 |
 | --- | --- |
 | `/agent-team {依頼}` | 前提確認・intake → S/M/L判定 |
-| `/agent-team init` | 下記の敷設手順 |
+| `/agent-team init` | `references/init.md` の敷設手順 |
 | `/agent-team status` | 行数、STATE/BACKLOG/queueを読み、現状・超過を `references/templates/REPORT_TEMPLATE.md` の順番で報告するだけ。記憶整理・session記帳・commitはしない |
 | `/agent-team resume` | 下記の引継ぎ手順 |
 
@@ -94,29 +94,9 @@ Git操作は `~/.agents/skills/git-ops/SKILL.md` に従う。
 - 委任はミッションとqueueへの記帳に限定する。STATEの縮約、人間の判断、破壊的操作の判断は親に残す。委任先が使えなければ親が進行管理する。
 - この委任は実装者の変更やレビュー条件の緩和を意味しない。
 
-### [4] Dispatch
-- 契約全文と役割スキルを名指しし、ラッパーの起動方法を使う。レーン運用ではレーンのworktreeを作業場所に指定する。session ID、成果物パス、作業場所、開始時刻を記録する。
-- 依存解決済みで競合資源を共有しないタスクは、parallel_max以内で同じステップとして同時に起動する（1件ずつ起動して待たない）。完了通知ごとに次のdispatchを判断し、バッチ全体の終了を待たない。
-- 完了条件: 各タスクが起動済み、または依存待ちとして記録されている。
-
-### [5] コードレビュー・修正
-- worker報告を親が `queue/reports/T-xxx.md` に保存し、対象差分・新規ファイル・契約適合を確認する。
-- 集約ファイルの登録があれば、親がレビュー前に追加する。**登録を含む最終変更**をレビュー・検証し、合格commitへ同梱する。
-- `~/.agents/skills/team-code-reviewer/SKILL.md` を独立担当に渡す。複数レビューの指摘は一度に統合し、満たすべき性質を示して元のworkerへ差し戻す（E4）。
-- 再レビュー・版の更新・上限超過はdispatchに従う。
-- テスト契約は親またはexecutorが変異を1〜2件抜き取り実施し、workerの証跡と照合する（E2）。並走時の汚染防止はdispatch参照。
-- 合格内容と実ファイルの一致を確認し、親が対象パスをstageしてtask commitする。未レビュー変更を混ぜない。
-- 画面確認のあるタスクは、進行管理者が画像を開いた確認の記録が揃うまでtask commitしない（dispatch「画面確認」）。
-- 完了条件: 報告・版に紐づく合格・検証証拠・画面確認の記録（該当時）・task commitが揃った。
-
-### [6] 統合・完了ゲート
-- タスク間の接続・共有資源・順序依存がある場合は統合後の整合性を独立レビューで確認する。契約と実際の変更から判断し、表の行の有無だけで省略しない。既存レビューに組み込める（別呼び出し必須ではない）。
-- レーン運用ではレーンのブランチを計画の順序で合流させてから進む。未コミット変更ゼロを確認し、統合後HEADで `verify.post_change` と `verify.smoke` を実行する。実時間依存のテストは単独で再実行する。
-- 型があれば型の「検証」を完了ゲートに含める。
-- テストを書いた場合は未実施分から変異を数件抜き取り、対応テストの失敗を確認して復元する。[5]で実施済み・対象不変なら再実施不要。
-- 実行担当はラッパーに従い、対象版・コマンド・終了コード・必要な出力を記録する。実行の有無と検証内容の適切さは別々に確認する。自己申告だけでは合格にしない。
-- 失敗は原因を切り分け[5]へ戻す。ゲートを緩めない。コード変更後は影響するレビュー・検証を更新する。
-- 完了条件: 最終版に対する必要なレビュー・実行検証・変異証拠が揃った。
+### [4]〜[6] 実行・レビュー・統合
+- 手順は `references/execute.md`。executorへ委任したら親は読まない（executorが読む）。親が直接進行管理するときだけ読む。
+- 親が受け取るときの完了条件: 全タスクの報告・最終版に紐づく合格・検証証拠・画面確認の記録（該当時）・task commit、統合後HEADでの `verify.post_change` / `verify.smoke` の実行記録、変異証拠が揃った。
 
 ### [7] 受入・状態整理
 - Acceptanceと証拠を照合する。フロントエンドは実描画を確認する。親の差分確認は要件に直結する範囲を抜き取り、独立レビュー全量を機械的に繰り返さない。
@@ -133,12 +113,7 @@ Git操作は `~/.agents/skills/git-ops/SKILL.md` に従う。
 - 完了条件: `close-mission.sh` の出力の1行（台帳の記録）と、後片付けの結果を載せた最終報告を出した。
 
 ## init
-1. `references/templates/init/` からconfig/state/backlog/queueを敷設する。stateにはmissions/closed、queueにはtasks/reports/reviews/researchを作る。
-2. 実在する検証コマンドを確認して `verify.post_change` / `verify.smoke` をユーザーと確定する。未確定で本流へ進まない。
-3. `AGENTS-section.md` の最小ポインタをプロジェクトAGENTS.mdへ追加し、CLAUDE.mdが無ければ `@AGENTS.md` を置く。規則本文を複製しない。
-4. `.agents/tmp/` をgitignoreへ追加し、状態本体は追跡する。
-5. CI（`.github/workflows/`）があれば、`.agents/` だけの変更でビルド・テストを走らせない設定を提案し、ユーザーの承認後に敷設PRへ含める。方式は必須チェックの有無で選ぶ: 無い→起動条件に `paths-ignore: ['.agents/**']`。有る・確認できない→差分判定ジョブを置き、対象ジョブを `if` で飛ばす（条件で飛ばしたジョブは必須チェックでも成功扱い。差分の取得失敗・空の差分・判定ジョブの失敗では実行する）。CIが無い場合はその旨を伝えるだけにする（新設は本手順の対象外）。
-6. 空repoの初回コミットはgit-setup、既存repoへの敷設はgit-opsに従う専用PR。開発ミッションに同乗させず先に統合する。
+`references/init.md` の手順で敷設する。
 
 ## resume
 1. STATEと対象ミッションを読む。複数activeなら対象を確認する。
@@ -147,7 +122,7 @@ Git操作は `~/.agents/skills/git-ops/SKILL.md` に従う。
 4. 未回収の担当は記録したsession・報告・ラッパーの継続手段で確認する。未回収を完了扱いにしない。
 
 ## 禁則・参照
-- 契約なしのdispatch、workerによるgovernance編集、権限回避、未実行の合格報告は禁止。
+- 契約なしのdispatch、workerによるgovernance編集、権限回避、未実行の合格報告（原則「本物で確かめる」）は禁止。
 - workerのgovernance禁止には `.agents/`、AGENTS.md、CLAUDE.md、ハーネス設定を含む。報告・調査結果の保存は親が代行する。
 - 通常ミッションの独立レビューをexpressの例外で省略しない。
 - 規則の実測背景は `references/evidence.md`（必要時のみ）。状態の詳細はstate-layer、実行共通規律はdispatchを参照。

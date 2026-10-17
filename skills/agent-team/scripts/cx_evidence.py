@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """agent-team: Codex のセッション記録（~/.codex/sessions の rollout）から実行証拠を抜き出す。
 
-親が worker の検証を再実行せずに確認するための道具（codex-protocol §10 の「元記録」）。
+親が worker の検証を再実行せずに確認するための道具（原則「本物で確かめる」の元記録）。
 worker の自己申告ではなく、Codex 自身が記録したコマンド・作業場所・終了コード・出力を表示する。
 
   python cx_evidence.py <session id | rollout.jsonl> [--worktree <path>] [--match REGEX] [--tail N]

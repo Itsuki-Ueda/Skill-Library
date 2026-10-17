@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# agent-team: codex exec を ~/.agents/docs/codex-protocol.md §3 の形で起動する。
+# agent-team: codex exec を起動する（起動の形の正本はこのスクリプト。失敗時の扱いは ~/.agents/docs/codex-protocol.md）。
 # プロンプトはファイルで渡す（引用符・変数名の書き間違いを構造的に防ぐ）。
 #
-#   cx-run.sh impl   --cwd <worktree> --prompt <file> --out <file> --model <m> --effort <e>   # §3d 実装
-#   cx-run.sh ask    --prompt <file> --out <file> --model <m> --effort <e> [--cwd <dir>]      # §3a 調査・文書レビュー（read-only）
-#   cx-run.sh review --cwd <repo> --target "--base origin/main" --out <file> --model <m> --effort <e>  # §3b 差分レビュー
-#   cx-run.sh resume --session <id> --prompt <file> --out <file> --model <m> --effort <e> [--cwd <worktree>]  # §3c
+#   cx-run.sh impl   --cwd <worktree> --prompt <file> --out <file> --model <m> --effort <e>   # 実装
+#   cx-run.sh ask    --prompt <file> --out <file> --model <m> --effort <e> [--cwd <dir>]      # 調査・文書レビュー（read-only）
+#   cx-run.sh review --cwd <repo> --target "--base origin/main" --out <file> --model <m> --effort <e>  # 差分レビュー
+#   cx-run.sh resume --session <id> --prompt <file> --out <file> --model <m> --effort <e> [--cwd <worktree>]  # 再開
 #     --cwd あり: 実装の差し戻し（workspace-write）。--cwd なし: レビュー・調査の再開（read-only。対象リポジトリ内から呼ぶ）
 #     resume は元の sandbox を引き継がない（指定しないと config.toml の既定で動く）ので、どちらも毎回明示する。
 #   --net（impl・--cwd ありの resume だけ）: sandbox のネットワークを許す。Linux（クラウド）の sandbox はネットワークを
@@ -47,7 +47,7 @@ case $kind in
     args=(exec -s read-only -C "$cwd" -o "$out" review "${tgt[@]}" "${cfg[@]}") ;;
   resume)
     need "$session" --session; need "$prompt" --prompt
-    args=(exec)   # §3d: -s/-C は exec と resume の間
+    args=(exec)   # -s/-C は exec と resume の間に置く（後ろに置くと unexpected argument）
     if [ -n "$cwd" ]; then args+=(-s workspace-write -C "$cwd"); else args+=(-s read-only); fi
     args+=(resume "$session" -o "$out" "${cfg[@]}" -); stdin=$prompt ;;
   *) echo "unknown kind: $kind" >&2; exit 2 ;;
