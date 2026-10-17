@@ -17,7 +17,7 @@
 ## 立ち上げ（人間が 1 回）
 
 1. 対象リポジトリをクラウドから取り込めるようにする。クラウドの GitHub 接続が別アカウントなら、そのアカウントを共同編集者に追加する（2026-10-17 実例）。
-2. Codex の Setup script を入れたクラウド環境で、対象リポジトリのセッションを起動し、最初の指示として「`~/.agents/skills/agent-team-cc/references/codex-session.md` の『常駐セッションの手順』に従う」と伝える。
+2. Codex の Setup script を入れたクラウド環境で、対象リポジトリのセッションを起動し、最初の指示として「`~/.agents/skills/agent-team-cc/references/codex-session.md` の『常駐セッションの手順』に従う。結果ブランチは <result_branch>。」の 1 行を送る（agent-team-cc SKILL.md「立ち上げ」。起動できるセッションなら Claude が、できなければ人間が行う）。
 3. セッションが出す Codex の device-auth の URL とコードをブラウザで承認する（セッションごとに 1 回）。
 
 ## 常駐セッションの手順（クラウドの Claude が行う）
