@@ -34,7 +34,7 @@ executor運用では、独立性はCodexレビュー、別ベンダーの視点�
 
 ## executor（節約運用）
 - 親がFableまたはOpusなら[3]の承認後にrouting.executorへ[4]〜[6]をミッション単位で委任する（Opus親は2026-10-05から試行。効果は `mission_cost.py` の台帳で、executor の有無で前後比較する）。例外はexecutorを起動できないときだけ。規模による例外は設けない（小さいものはIntakeでexpressに振られており、本節の対象外。「1タスクだから」で親が直接進行管理しない）。それ以外（Sonnet等）なら親が進行管理する。
-- 渡すものは共通本体・`references/execute.md`・dispatch・本書のパス、ミッション、分解骨子、契約清書の指示、停止条件。
+- 渡すものは共通本体・`references/execute.md`・dispatch・本書のパス、ミッション（`型:` に型があればその型のファイルのパスも）、分解骨子、契約清書の指示、停止条件。
 - executorはミッションとqueueへ記帳できる。STATE縮約は親だけ。
 - executorはCLI worker・CLI reviewerに加え、routingのagent（coding-agent・reviewer）もAgentツールで自分が起動する（`run_in_background=false` で結果を待つ）。親は中継しない。同じステップのタスクは1つのメッセージにAgent呼び出しを並べて同時に起動する（1体ずつ起動して待たない。2026-10-07実測で並行動作を確認）。
 - 差し戻しは同じエージェントへSendMessageで送り、末尾に「報告の全文を `<out>.report.md` に書き、最後に空の `<out>.done` を作ってから報告を返す」と添える（`<out>` はCLIの `-o` と同じく作業ツリーの外）。送ったら番を終えず、Bashツール（timeout 600000）で `bash ~/.agents/skills/agent-team/scripts/wait-done.sh <out>.done` を実行して待つ（TIMEOUTなら再実行）。番を終えると自動催促でexecutorが終わり、結果を受け取れないため（2026-10-06実測）。同じステップの差し戻しはSendMessageをまとめて送り、全員の `.done` を1回の `wait-done.sh` に並べる。どれか1つが出た時点で返るので、その分を処理してから残りを同じコマンドで待ち直す。DONE後は `<out>.report.md` を正とし、遅れて届いた正式報告は親へ転送しない。

@@ -60,7 +60,7 @@ Git操作は `~/.agents/skills/git-ops/SKILL.md` に従う。
 - 完了条件: 必須設定・状態が読め、上限内または許容された先送りである。
 
 ### [1] Intake
-- 依頼が作業の型に当たるなら、その型を読む: 不具合修正 `references/types/bug-fix.md` / 機能追加 `feature.md` / リファクタ `refactor.md` / 性能 `perf.md` / 画面 `ui.md`（いずれも `references/types/`）。型は[2]調査の問い・[3]契約の既定欄・[6]検証の中身を決める。2つに当たる（画面を含む機能追加など）なら両方を読む。当たらない依頼は型なしで進める。
+- 依頼が作業の型に当たるなら、その型を読む: 不具合修正 `references/types/bug-fix.md` / 機能追加 `feature.md` / リファクタ `refactor.md` / 性能 `perf.md` / 画面 `ui.md`（いずれも `references/types/`）。型は[2]調査の問い・[3]契約の既定欄・[6]検証の中身を決める。2つに当たる（画面を含む機能追加など）なら両方を読む。当たらない依頼は型なしで進める。選んだ型はミッションの `型:` に書く（executor はここを見て型の[6]を完了ゲートに入れる）。
 - Goal、検証可能なAcceptance、制約、Human Escalationを確定する。不明点だけ人間に確認する。「ミッションの単位」に照らして分ける・まとめるべきなら、ここで人間に提案する。
 - `references/templates/MISSION_TEMPLATE.md` からM-xxxを採番し、STATEに索引を追加する。
 - ブランチはgit-opsの命名に従う（例: `feat/m-xxx-summary`）。
@@ -95,7 +95,7 @@ Git操作は `~/.agents/skills/git-ops/SKILL.md` に従う。
 
 ### [4]〜[6] 実行・レビュー・統合
 - 手順は `references/execute.md`。executorへ委任したら親は読まない（executorが読む）。親が直接進行管理するときだけ読む。
-- 親が受け取るときの完了条件: 全タスクの報告・最終版に紐づく合格・検証証拠・画面確認の記録（該当時）・task commit、統合後HEADでの `verify.post_change` / `verify.smoke` の実行記録、変異証拠が揃った。
+- 親が受け取るときの完了条件: 全タスクの報告・最終版に紐づく合格・検証証拠・画面確認の記録（該当時）・型の[6]検証の記録（該当時）・task commit、統合後HEADでの `verify.post_change` / `verify.smoke` の実行記録、変異証拠が揃った。
 
 ### [7] 受入・状態整理
 - Acceptanceと証拠を照合する。フロントエンドは実描画を確認する。親の差分確認は要件に直結する範囲を抜き取り、独立レビュー全量を機械的に繰り返さない。

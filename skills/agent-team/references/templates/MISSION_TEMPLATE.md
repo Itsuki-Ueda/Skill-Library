@@ -2,6 +2,7 @@
 
 Status: intake | planning | executing | integrating | done
 Branch: {git-opsに従うブランチ名}
+型: {references/types/ のファイル名（例: bug-fix.md）。2つ当たるなら両方。当たらなければ なし}
 Active session: <引き継ぎ時に記載・終了時にクリア>
 
 ## Goal
