@@ -1,0 +1,11 @@
+# agent-team-cc の既定値（agent-team の defaults.yaml への差分だけ）。
+# 解決順: agent-team/references/defaults.yaml → 本ファイル → プロジェクトの .agents/config/team.yaml。
+# 根拠: 実装ベンチ（2026-10）。express=Haiku high / worker=Sonnet high / hard-worker=Opus medium。
+
+routing:
+  express:     { agent: coding-agent, model: haiku,  effort: high }
+  worker:      { agent: coding-agent, model: sonnet, effort: high, parallel_max: 5 }
+  hard-worker: { agent: coding-agent, model: opus,   effort: medium }
+  # コードレビューはクラウド常駐の Codex 専用セッションへ Git 経由で依頼する（手順: references/codex-session.md）。
+  # result_branch はプロジェクトの team.yaml で上書きする（常駐セッションが push するブランチ）。
+  codex-review: { session: git, result_branch: codex-reviewer, model: gpt-6.1-sol, effort: medium, timeout_min: 30 }
