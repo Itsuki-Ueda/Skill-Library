@@ -54,4 +54,4 @@ Status: contracted → dispatched → fixing(rN) → review_ok → committed
 
 ## Log（判断と経緯の時系列記録）
 
-- <日付時刻（書くたびに `date '+%F %H:%M'` で取る。見込みで書かない。台帳は、このファイルの日付で始まる行から開始・終了を読む）> <出来事・判断・根拠>
+- <日付時刻（`bash ~/.agents/skills/agent-team/scripts/log.sh <M-ID> "<出来事・判断・根拠>"` で足す。時刻はスクリプトが付けるので手で書かない。台帳は、このファイルの日付で始まる行から開始・終了を読む）> <出来事・判断・根拠>
