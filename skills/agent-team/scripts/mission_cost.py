@@ -32,6 +32,12 @@ def units(u):
     return sum(u.get(k, 0) * w for k, w in W.items())
 
 
+def section(s, title):
+    """`## <title>` で始まる節の本文（次の `## ` 見出しの手前まで）。無ければ空文字。"""
+    m = re.search(rf"^## {re.escape(title)}[^\n]*\n(.*?)(?=^## |\Z)", s, re.M | re.S)
+    return m.group(1) if m else ""
+
+
 def parse_mission(path):
     s = open(path, encoding="utf-8").read(); mid = os.path.basename(path)[:-3]
     rows = [l for l in s.splitlines() if re.match(r"\|\s*T-", l)]
@@ -48,7 +54,9 @@ def parse_mission(path):
             "review_rounds": sum(max(map(int, re.findall(r"\br(\d+)", r)), default=0) for r in rows),
             "plan_review_rounds": len(set(re.findall(r"計画レビュー r(\d+)", s))),
             "integration_review_rounds": len(set(re.findall(r"統合レビュー[^\n]*?r(\d+)", s))),
-            "human_decisions": len(re.findall(r"^- \d{4}-\d{2}-\d{2}[^\n]*人間", s, re.M)),
+            # 「Human Decisions」節の、日付（と時刻）の直後が「人間」で始まる行だけ数える。節の外の Log や、
+            # 親が承認を当てはめた行まで数えると、事前承認1件が2〜3件になった（2026-10-17 のテストミッション）
+            "human_decisions": len(re.findall(r"^- \d{4}-\d{2}-\d{2}(?: \d{2}:\d{2})? 人間", section(s, "Human Decisions"), re.M)),
         },
         # 計画の形: 並列計画の「ステップ数: N」「依存の深さ: N」（旧称「波 N」「最長の列 N 段」、コロン無しも読む）と、executor の代数（「N 代目」「第 N 代」の最大）
         "plan": {"steps": num(r"(?:ステップ数|波)[:：]?\s*(\d+)"), "depth": num(r"(?:依存の深さ|最長の列)[:：]?\s*(\d+)"),
