@@ -8,5 +8,5 @@ routing:
   hard-worker: { agent: coding-agent, model: opus,   effort: medium }
   # コードレビューはクラウド常駐の Codex 専用セッションへ Git 経由で依頼する（手順: references/codex-session.md）。
   # result_branch はプロジェクトの team.yaml で上書きする（常駐セッションが push するブランチ）。
-  # session: git = 常駐セッションへ Git で依頼 / local = その場で cx-run.sh review（ローカルで Codex が使うプロジェクト）
+  # session: git = 常駐セッションへ Git で依頼 / local = その場で cx-run.sh ask（team-code-reviewer＋契約）（ローカルで Codex が使うプロジェクト）
   codex-review: { session: git, result_branch: codex-reviewer, model: gpt-6.1-sol, effort: medium, timeout_min: 30 }

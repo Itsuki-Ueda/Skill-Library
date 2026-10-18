@@ -50,6 +50,7 @@ Git状態（`main` ＋ 進行中の作業だけが存在する状態）を維持
 この正本は完了条件を規定し、実行できない工程は確認済みの正式な経路へ委譲する。利用可否が不明な経路を推測で使わない。
 
 - Claude Codeの一時/自動生成worktree置き場は `.claude/worktrees/`。
+- プライベート対象（`Documents/個人開発/` 配下と `~/.agents`）で gh を使うときは、切替せず1コマンドに閉じる: `GH_TOKEN=$(gh auth token --user Itsuki-Ueda) gh pr ...`（git-setup §1-2 と同じ。仕事用リポジトリでは付けない）。
 - Codexは `~/.codex/skills/git-ops/SKILL.md` の固有ルールを併読する。
 
 ## 1.6 他スキルとの優先順位と公開前確認
@@ -149,7 +150,8 @@ cmd /c rmdir "<worktree_path>\node_modules"
 git worktree remove --force <worktree_path>
 
 # 2) リモートのブランチを削除（GitHub側の自動削除がONなら不要。§5参照）
-git push origin --delete <branch>
+#    自動削除で既に無いことがあるので、残っているときだけ消す
+git ls-remote --exit-code --heads origin <branch> && git push origin --delete <branch>
 
 # 3) ローカルのブランチを削除（スカッシュマージ済みは -d では消せないので -D）
 git branch -D <branch>

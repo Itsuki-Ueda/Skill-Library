@@ -32,7 +32,7 @@ description: "試験中の agent-team 派生。プロジェクトの AGENTS.md�
 
 `routing.codex-review` が `session: git` のとき、コードレビュー（team-code-reviewer）を次の形で行う。手順の正本は `references/codex-session.md`。
 
-`session: local` のときは常駐セッションを使わず、agent-team どおり Orchestrator のマシンで `cx-run.sh review` をその場で回す（Codex がローカルで使える個人のプロジェクト向け。下の 1〜5 と「立ち上げ」は不要）。プロジェクトの team.yaml に `routing: { codex-review: { session: local } }` と書いて切り替える。
+`session: local` のときは常駐セッションを使わず、Orchestrator のマシンで `cx-run.sh ask`（team-code-reviewer と契約を渡す）をその場で回す（Codex がローカルで使える個人のプロジェクト向け。下の 1〜5 と「立ち上げ」は不要）。プロジェクトの team.yaml に `routing: { codex-review: { session: local } }` と書いて切り替える。
 
 1. **準備の確認**（[0] 前提確認で、ミッションごとに 1 回）: `bash ~/.agents/skills/agent-team-cc/scripts/wait-review.sh --repo <リポジトリ> --ready --result-branch <result_branch> --timeout 0`。`git fetch` 1 回なので、セッションを探し回らない。READY の時刻が古いだけでは止まったと判定しない（約 4 時間前の READY でも応答した実例がある）。READY が無ければ下の「立ち上げ」を行い、届くまでのレビューは 5 の縮退で進める（作業は止めない）。
 2. **依頼**: レビュー対象（作業ツリーの現在の状態）をスナップショットとして push し、依頼を出す:
@@ -40,7 +40,7 @@ description: "試験中の agent-team 派生。プロジェクトの AGENTS.md�
    依頼IDは `<M-ID>-<T-ID>-r<N>`（express は `<T-E-ID>-r<N>`）。スクリプトは作業ツリーも index も変えない。出力の head・base の SHA をレビュー記録の対象版に書く。
 3. **回収**: `bash ~/.agents/skills/agent-team-cc/scripts/wait-review.sh --repo <リポジトリ> --id <依頼ID> --result-branch <result_branch>` を Bash の `run_in_background: true` で起動し、完了通知で結果ファイルを読む。結果の head SHA が依頼と一致しなければ無効として扱う。
 4. 結果ファイルの「codex: exit=」が 0 以外、または「## 失敗」節があれば、失敗として 1 回だけ依頼をやり直す（新しい依頼ID）。
-5. **縮退**: READY が無い・`timeout_min` 内に結果が来ない・やり直しも失敗した場合は、agent-team の通常経路（Orchestrator 自身のマシンで Codex CLI を `cx-run.sh review` で起動し、結果をファイルで受け取る）で同じモデル・effort のレビューを回す。そのマシンに Codex CLI とログインが要る。縮退した事実と理由をレビュー記録に残し（Codex レビュー自体は達成扱い）、人間（または起動できるセッション）に常駐セッションの再起動を頼む。
+5. **縮退**: READY が無い・`timeout_min` 内に結果が来ない・やり直しも失敗した場合は、agent-team の通常経路（Orchestrator 自身のマシンで Codex CLI を `cx-run.sh ask`（team-code-reviewer と契約を渡す）で起動し、結果をファイルで受け取る）で同じモデル・effort のレビューを回す。そのマシンに Codex CLI とログインが要る。縮退した事実と理由をレビュー記録に残し（Codex レビュー自体は達成扱い）、人間（または起動できるセッション）に常駐セッションの再起動を頼む。
 6. 計画レビュー（team-plan-reviewer）は試験の対象外。agent-team どおり `cx-run.sh ask` で回す。
 
 Orchestrator の直読・変異の抜き取り・計測は agent-team から変えない（Codex は同じ差分でも回ごとに指摘がぶれ、仕込んだ不具合を見逃した実例がある。2026-10-17）。
