@@ -56,7 +56,9 @@ def parse_mission(path):
             "integration_review_rounds": len(set(re.findall(r"統合レビュー[^\n]*?r(\d+)", s))),
             # 「Human Decisions」節の、日付（と時刻）の直後が「人間」で始まる行だけ数える。節の外の Log や、
             # 親が承認を当てはめた行まで数えると、事前承認1件が2〜3件になった（2026-10-17 のテストミッション）
-            "human_decisions": len(re.findall(r"^- \d{4}-\d{2}-\d{2}(?: \d{2}:\d{2})? 人間", section(s, "Human Decisions"), re.M)),
+            # 0件なら、旧書式（「分解を人間が承認」のように「人間」が行の途中）や節の無い古い記録とみて、従来どおり行のどこかに「人間」がある行を数える
+            "human_decisions": len(re.findall(r"^- \d{4}-\d{2}-\d{2}(?: \d{2}:\d{2})? 人間", hd := section(s, "Human Decisions"), re.M))
+                               or len(re.findall(r"^- \d{4}-\d{2}-\d{2}[^\n]*人間", hd or s, re.M)),
         },
         # 計画の形: 並列計画の「ステップ数: N」「依存の深さ: N」（旧称「波 N」「最長の列 N 段」、コロン無しも読む）と、executor の代数（「N 代目」「第 N 代」の最大）
         "plan": {"steps": num(r"(?:ステップ数|波)[:：]?\s*(\d+)"), "depth": num(r"(?:依存の深さ|最長の列)[:：]?\s*(\d+)"),

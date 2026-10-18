@@ -19,13 +19,27 @@ MISSION = """# M-001: test
 """
 
 
-def test_human_decisions_counts_only_the_section():
+def count(text):
     with tempfile.TemporaryDirectory() as d:
         p = os.path.join(d, "M-001.md")
-        open(p, "w", encoding="utf-8").write(MISSION)
-        assert parse_mission(p)["quality"]["human_decisions"] == 2
+        open(p, "w", encoding="utf-8").write(text)
+        return parse_mission(p)["quality"]["human_decisions"]
+
+
+def test_human_decisions_counts_only_the_section():
+    assert count(MISSION) == 2
+
+
+def test_human_decisions_old_format_line():
+    assert count("# M-001\n\n## Human Decisions\n\n- 2026-10-17 分解を人間が承認。\n\n## Log\n\n- 2026-10-17 15:20 開始\n") == 1
+
+
+def test_human_decisions_without_section():
+    assert count("# M-001\n\n## Log\n\n- 2026-10-17 15:20 分解を人間が承認。\n- 2026-10-17 15:30 実装\n") == 1
 
 
 if __name__ == "__main__":
     test_human_decisions_counts_only_the_section()
+    test_human_decisions_old_format_line()
+    test_human_decisions_without_section()
     print("ok")
