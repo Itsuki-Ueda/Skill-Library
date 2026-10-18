@@ -59,7 +59,9 @@ def local(ts):
 
 
 def worktree_changes(path):
-    """git status 上の変更・未追跡ファイルと、その更新時刻（ISO UTC）。削除は時刻なしで除外。"""
+    """git status 上の変更・未追跡ファイルと、その更新時刻（ISO UTC）。削除は時刻なしで除外。
+    `.agents/` は数えない。worker の実行中に親が契約や記録を書くと、worker の検証がすべて「変更前」に見えるため
+    （2026-10-17 のテストで4回。worker が `.agents/` を触っていないかは契約外変更の確認で見る）。"""
     out = subprocess.run(["git", "-C", path, "status", "--porcelain", "-uall", "-z"],
                          capture_output=True, text=True, encoding="utf-8", check=True).stdout
     found = []
@@ -72,6 +74,8 @@ def worktree_changes(path):
             continue
         if e[0] in "RC":  # rename/copy は次の要素が元パス
             i += 1
+        if e[3:].startswith(".agents/"):
+            continue
         full = os.path.join(path, e[3:])
         if os.path.isfile(full):
             ts = datetime.fromtimestamp(os.path.getmtime(full), timezone.utc).isoformat().replace("+00:00", "Z")
