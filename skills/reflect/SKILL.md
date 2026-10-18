@@ -21,11 +21,11 @@ description: "作業やミッションの終わりに、会話の記録を3つ�
 
 | 観点 | 担当 | 見るもの |
 | --- | --- | --- |
-| 判断 | Agent（汎用、model: opus） | 間違い、受けた指摘、人間の好み、判断の理由 |
-| 道具 | Codex（`bash ~/.agents/skills/agent-team/scripts/cx-run.sh ask`。model・effort は agent-team の defaults.yaml の `research`） | コマンド・設定・環境の罠、人間が手で渡した情報 |
-| 別の見方 | Agent（汎用、model: opus） | 理由を取り違えたままうまくいった判断、飛ばした確認、見落とした波及 |
+| 判断 | カスタム Agent `reflect-lens`（Sonnet・effort high） | 間違い、受けた指摘、人間の好み、判断の理由 |
+| 道具 | カスタム Agent `reflect-lens` に `model: haiku`（Haiku・effort high） | コマンド・設定・環境の罠、人間が手で渡した情報 |
+| 別の見方 | カスタム Agent `reflect-lens`（Sonnet・effort high） | 理由を取り違えたままうまくいった判断、飛ばした確認、見落とした波及 |
 
-- Codex が使えないときは、道具の観点も Agent で回し、報告に「別モデルの観点なし」と書く。
+- 2026-10-18 の比較（同じ記録2本）で、Opus 2人と Codex の組み合わせと同じ大事な提案が残り、費用は約3分の1になった。Sonnet medium は1本で大事な提案を2件落とした。
 - Codex のセッションで頼まれたときは、3つの観点をカスタム Agent `researcher` で回す。
 - 返答は親が受け取る。読み取り専用の担当にファイルの保存を求めない。
 

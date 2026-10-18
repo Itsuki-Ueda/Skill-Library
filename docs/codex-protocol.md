@@ -1,6 +1,6 @@
 # Codex CLI 呼び出しの正本プロトコル
 
-agent-team（`cx-run.sh`）と reflect から参照する、OpenAI Codex CLI 呼び出しの正本。
+agent-team（`cx-run.sh`）から参照する、OpenAI Codex CLI 呼び出しの正本。
 起動の形は `bash ~/.agents/skills/agent-team/scripts/cx-run.sh`（impl / ask / review / resume）の中にある。コマンドを手で組み立てない。
 このファイルを読むのは、起動に失敗したとき、sandbox の制限に当たったとき、`cx-run.sh` で足りない形が要るときだけ。
 
