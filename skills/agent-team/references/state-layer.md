@@ -57,7 +57,7 @@
 3. [7]完了時の**縮約（強制ステップ）**:
    - STATE.mdのMissions行を完了記録1行（ID・成果・commit範囲）に縮めてLogへ移す。
    - 得られた教訓・罠は memory-ops の「記録の入口」に従って INBOX.md へ（初出）、
-     または回数3到達で昇格、人間指示なら直行。**MEMORY.md に追記して終わりにしない。**
+     または昇格の回数（memory-ops）に達したら昇格、人間指示なら直行。**MEMORY.md に追記して終わりにしない。**
    - ミッションファイルの `Active session` をクリアし、`bash ~/.agents/skills/agent-team/scripts/close-mission.sh <M-ID> [<作業場所>]` で `missions/closed/` へ移動する（台帳への記録も同時に行う）。
    - `check-size.sh` を実行し、閾値超過があれば memory-ops の該当サブコマンドを実施する。
    - `.agents/` の変更をコミット。
