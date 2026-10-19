@@ -130,7 +130,7 @@ def main(argv):
         for it in list_files(space_url, key, argv[2], argv[3] if len(argv) > 3 else "/"):
             kind = "DIR " if it["type"] == "directory" else "FILE"
             size = it.get("size") or "-"
-            print(f"{it['id']}\t{kind}\t{size}\t{it['updated']}\t{it['dir'].rstrip('/')}/{it['name']}")
+            print(f"{it['id']}\t{kind}\t{size}\t{it['updated']}\t{(it['dir'] + it['name']).lstrip('/')}")
     else:
         if len(argv) < 4:
             sys.exit(__doc__)

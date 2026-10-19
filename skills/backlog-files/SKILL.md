@@ -22,7 +22,7 @@ python ~/.agents/skills/backlog-files/scripts/backlog_files.py list {プロジ�
 python ~/.agents/skills/backlog-files/scripts/backlog_files.py get {プロジェクトキー} {ファイルID} [{保存先フォルダ}]
 ```
 
-一覧の列: `ID  種類(FILE/DIR)  サイズ  更新日時  パス`。`get` は保存したファイルのパスを1行出す。
+一覧の列: `ID  種類(FILE/DIR)  サイズ  更新日時  パス`。フォルダのパスは先頭に `/` を付けずに渡す（Windows の Git Bash が `/入庫` を PC のフォルダの場所に書き換えてしまうため。一覧のパスも `/` なしで出す）。`get` は保存したファイルのパスを1行出す。
 
 中身を読むときは、出てきたパスを Read で開く（PDF・画像はそのまま読める）。Excel・Word・PowerPoint は xlsx・docx・pptx のスキルを使う。
 
