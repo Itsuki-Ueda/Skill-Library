@@ -51,6 +51,7 @@ Git状態（`main` ＋ 進行中の作業だけが存在する状態）を維持
 
 - Claude Codeの一時/自動生成worktree置き場は `.claude/worktrees/`。
 - プライベート対象（`Documents/個人開発/` 配下と `~/.agents`）で gh を使うときは、切替せず1コマンドに閉じる: `GH_TOKEN=$(gh auth token --user Itsuki-Ueda) gh pr ...`（git-setup §1-2 と同じ。仕事用リポジトリでは付けない）。
+- クラウドでタグの push やリモートブランチの削除が拒否・切断されたら、同じ操作を繰り返さず GitHub の API（`gh api` や GitHub MCP）で行う（2026-10-19 実測: タグの push がプロキシで2回切断された）。
 - Codexは `~/.codex/skills/git-ops/SKILL.md` の固有ルールを併読する。
 
 ## 1.6 他スキルとの優先順位と公開前確認
