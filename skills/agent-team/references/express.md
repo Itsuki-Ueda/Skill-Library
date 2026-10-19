@@ -14,7 +14,7 @@
 2. ハーネスのexpress担当へ契約とteam-worker規約を渡す。session IDと成果物を記録する。
 3. 親が報告をqueue/reportsへ保存し、差分・新規ファイル・契約外変更・要件・退行を直読する。版と判定はdispatchの形式でqueue/reviewsへ残す。画面確認がある場合は、workerの画像を開いて（モックがあれば並べて）確認し、その記録が揃うまでcommitしない。
 4. 修正は同じworkerへ戻し、親が対処と退行を確認する。上限はlimits.fix_rounds_express。
-5. 契約外変更なしを確認し、verify.post_changeとverify.smokeを実行する。テスト契約に変異があれば適用・失敗・復元を確認する。
+5. 契約外変更なしを確認し、verify.post_changeとverify.smokeを実行する。差分に `.github/workflows/` が含まれる場合は execute.md [6] の zizmor 検査も実行する。テスト契約に変異があれば適用・失敗・復元を確認する。
 6. 親がレビュー・検証した内容だけをcommitする。変更が入ったら影響するレビューと検証を更新する。
 7. STATEのLogにT-E-xxxの結果を1行記録し、状態変更をcommitする。ミッションファイルは作らない。
 8. `~/.agents/skills/agent-team/references/templates/REPORT_TEMPLATE.md` の順番で報告し（expressは台帳に記録しないので、5の台帳の1行は無い）、資源を作った場合はgit-opsに従って後片付けする。
