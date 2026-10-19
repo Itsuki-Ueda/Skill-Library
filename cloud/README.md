@@ -25,6 +25,8 @@
 1. 環境の Setup script（`cloud/setup.sh` の中身）が、環境の初回起動時に
    `claude plugin marketplace add Itsuki-Ueda/Skill-Library` → `claude plugin install skill-library@ueda`
    （続けて Ponytail も）を実行する。**public リポジトリなので認証は不要**。
+   あわせて `~/.claude/settings.json` の `env` に `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=50` を足す
+   （ローカルと同じ自動圧縮の開始位置。ローカルの settings.json はクラウドに届かないため）。
    結果は環境のファイルシステム・スナップショットに焼き込まれ、約 7 日間キャッシュされる。
 2. 以後のセッションはそのスナップショットから起動するので、最初から Plugin が入っている。
    Plugin 自身の SessionStart hook（`hooks/bootstrap.sh`）がセッション開始時に走る

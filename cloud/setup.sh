@@ -44,6 +44,21 @@ else
   ls -d "$HOME"/.claude/plugins/cache/ponytail/ponytail/*/ || echo "ponytail のキャッシュなし"
 fi
 
+# --- 自動圧縮を 50% で始める（ローカルの ~/.claude/settings.json と同じ値） ---
+# plugin install が書いた enabledPlugins を消さないよう、env の 1 キーだけ足す。
+SETTINGS="$HOME/.claude/settings.json"
+mkdir -p "$HOME/.claude" || true
+[ -s "$SETTINGS" ] || echo '{}' > "$SETTINGS"
+python3 - "$SETTINGS" <<'PY' || true
+import json, sys
+p = sys.argv[1]
+d = json.load(open(p))
+d.setdefault("env", {})["CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"] = "50"
+json.dump(d, open(p, "w"), indent=2)
+PY
+echo "--- settings env ---"
+grep -n AUTOCOMPACT "$SETTINGS" || echo "自動圧縮の設定を書けませんでした"
+
 # --- 導入結果の表示（失敗しても続行） ---
 echo "--- versions ---"
 node --version || true
