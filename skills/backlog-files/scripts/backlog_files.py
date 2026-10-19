@@ -143,5 +143,7 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    # エラーは stderr に出るので、両方を UTF-8 にそろえる（Git Bash で化けないように）
     sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
     main(sys.argv)
