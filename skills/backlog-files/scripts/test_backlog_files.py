@@ -18,7 +18,7 @@ class FakeBacklog(http.server.BaseHTTPRequestHandler):
         u = urllib.parse.urlparse(self.path)
         q = urllib.parse.parse_qs(u.query)
         SEEN.append((u.path, q))
-        assert q["apiKey"] == ["k"]
+        assert self.headers["Backlog-API-Key"] == "k" and "apiKey" not in q
         if u.path == "/api/v2/projects":
             body = json.dumps([{"projectKey": "PRJ", "name": "テスト"}]).encode()
             self.send_response(200)

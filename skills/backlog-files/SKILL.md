@@ -32,7 +32,7 @@ python ~/.agents/skills/backlog-files/scripts/backlog_files.py get {プロジェ
 
 スクリプトは次の順に探す。APIキーは画面にもログにも出さない。
 
-1. 環境変数 `BACKLOG_API_KEY` と `BACKLOG_SPACE_URL`（例: `https://{スペースID}.backlog.jp`）。クラウドはこちらで、環境のネットワークシークレットに入れる。
+1. 環境変数 `BACKLOG_SPACE_URL`（例: `https://{スペースID}.backlog.com`）。クラウドはこちら。キーは環境のネットワークシークレット（許可するサイト = スペースのドメイン、カスタムヘッダー名 `Backlog-API-Key`、プレフィックス空欄）で渡すので、セッションからは見えなくてよい。環境変数 `BACKLOG_API_KEY` があればそれを使う。
 2. Windows の資格情報マネージャーの汎用資格情報 `backlog-api`（ユーザー名 = スペースの URL、パスワード = APIキー）。ローカルはこちら（2026-10-19 人間の決定）。
 
 ローカルで初めて使うときは、人間に PowerShell で一度だけ次を流してもらう。`/pass` の後ろに値を書かないと、キーを聞かれて画面にも履歴にも残らない（AI はキーを受け取らない）:
