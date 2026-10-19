@@ -56,6 +56,11 @@ def test_list_and_get():
             raise AssertionError("404 で止まるはず")
         except SystemExit as e:
             assert "404" in str(e) and "apiKey" not in str(e)
+        try:
+            backlog_files.list_files(url, "k", "PRJ", "C:/Program Files/Git/入庫")
+            raise AssertionError("書き換えられたパスで止まるはず")
+        except SystemExit as e:
+            assert "先頭の / を外して" in str(e)
     finally:
         srv.shutdown()
 

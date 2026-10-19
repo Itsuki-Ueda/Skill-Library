@@ -14,6 +14,7 @@
 import email.message
 import json
 import os
+import re
 import sys
 import tempfile
 import urllib.error
@@ -84,6 +85,9 @@ def request(url, key):
 
 
 def list_files(space_url, key, project, folder):
+    # Git Bash は先頭が / の引数を C:/Program Files/Git/... に書き換える。Backlog のパスがドライブ名で始まることはない
+    if re.match(r"^[A-Za-z]:[/\\]", folder):
+        sys.exit(f"フォルダのパスが PC の場所（{folder}）に書き換えられています。先頭の / を外して渡してください。")
     folder = "/" + folder.strip("/")
     path = f"projects/{urllib.parse.quote(project)}/files/metadata{urllib.parse.quote(folder)}"
     offset, items = 0, []
