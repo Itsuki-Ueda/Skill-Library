@@ -12,6 +12,9 @@ Backlog の連携（MCP）には共有ファイルを扱う機能がないので
 Windows では `python`、クラウドでは `python3` で動かす。
 
 ```bash
+# 参加しているプロジェクトのキーと名前（プロジェクトキーが分からないとき）
+python ~/.agents/skills/backlog-files/scripts/backlog_files.py projects
+
 # 一覧（フォルダを省くと一番上。フォルダは中まで降りないので、DIR の行を見て辿る）
 python ~/.agents/skills/backlog-files/scripts/backlog_files.py list {プロジェクトキー} [{フォルダのパス}]
 

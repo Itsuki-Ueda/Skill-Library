@@ -1,6 +1,7 @@
 """Backlog の共有ファイルを一覧・ダウンロードする（標準ライブラリだけ）。
 
 使い方:
+  python backlog_files.py projects
   python backlog_files.py list <プロジェクトキー> [フォルダのパス]
   python backlog_files.py get  <プロジェクトキー> <ファイルID> [保存先フォルダ]
 
@@ -111,11 +112,19 @@ def get_file(space_url, key, project, file_id, out_dir):
     return dest
 
 
+def list_projects(space_url, key):
+    with request(api_url(space_url, "projects", apiKey=key)) as r:
+        return json.load(r)
+
+
 def main(argv):
-    if len(argv) < 3 or argv[1] not in ("list", "get"):
+    if argv[1:2] != ["projects"] and (len(argv) < 3 or argv[1] not in ("list", "get")):
         sys.exit(__doc__)
     space_url, key = load_credentials()
-    if argv[1] == "list":
+    if argv[1] == "projects":
+        for p in list_projects(space_url, key):
+            print(f"{p['projectKey']}\t{p['name']}")
+    elif argv[1] == "list":
         for it in list_files(space_url, key, argv[2], argv[3] if len(argv) > 3 else "/"):
             kind = "DIR " if it["type"] == "directory" else "FILE"
             size = it.get("size") or "-"

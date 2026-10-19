@@ -19,7 +19,10 @@ class FakeBacklog(http.server.BaseHTTPRequestHandler):
         q = urllib.parse.parse_qs(u.query)
         SEEN.append((u.path, q))
         assert q["apiKey"] == ["k"]
-        if u.path == "/api/v2/projects/PRJ/files/metadata/%E8%B3%87%E6%96%99":
+        if u.path == "/api/v2/projects":
+            body = json.dumps([{"projectKey": "PRJ", "name": "テスト"}]).encode()
+            self.send_response(200)
+        elif u.path == "/api/v2/projects/PRJ/files/metadata/%E8%B3%87%E6%96%99":
             body = json.dumps([{"id": 7, "type": "file", "dir": "/資料/", "name": "見積.pdf",
                                 "size": 3, "updated": "2026-10-19T00:00:00Z"}]).encode()
             self.send_response(200)
@@ -40,6 +43,7 @@ def test_list_and_get():
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     url = f"http://127.0.0.1:{srv.server_port}/"
     try:
+        assert backlog_files.list_projects(url, "k")[0]["projectKey"] == "PRJ"
         items = backlog_files.list_files(url, "k", "PRJ", "資料/")
         assert [i["name"] for i in items] == ["見積.pdf"]
         assert SEEN[-1][1]["count"] == ["1000"]
