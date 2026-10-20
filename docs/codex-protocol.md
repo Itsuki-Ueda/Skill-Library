@@ -7,6 +7,7 @@ agent-team（`cx-run.sh`）から参照する、OpenAI Codex CLI 呼び出しの
 ## 1. モデル / effort
 - model / effort は呼び出し側の設定（agent-team の `references/defaults.yaml` とプロジェクトの team.yaml）が正本。ここに既定値を置かない。
 - slug は完全一致で使う（`gpt-6` のような省略名はエラーになる）。設定の値を逐語でコピーし、記憶から組み立てない。
+- 指定のモデルが「使えない」で失敗したら、別のモデルに替える前に Codex CLI を最新版に上げて同じ slug で試し直す（`~/.agents/AGENTS.md` 基本ルール）。
 - `cx-run.sh` は毎回 `-c model=… -c model_reasoning_effort=…` を付けるので、`~/.codex/config.toml` の設定に左右されない。
 
 ## 2. 実行シェル

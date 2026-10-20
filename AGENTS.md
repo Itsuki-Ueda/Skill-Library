@@ -13,6 +13,7 @@
     ユーザーが `{}` ごと消したときに構文が壊れないようにするため。
   - 置換すべきでない箇所（キーワード・固定文字列）は `{}` で囲まない。囲まれていない＝そのまま残す、と読める状態を保つ。
 - [確認 2026-09-26 | 根拠 docs/codex-model-comparison.md] Codex のモデル（sol / luna）・effort・レビューの回し方を変える判断や、Codex の使用量を減らす検討をするときは、先に `~/.agents/docs/codex-model-comparison.md`（実測の比較）を読む。
+- 指定されたモデルが「使えない」「対応していない」で失敗したら、別のモデルに替える前に、まずその道具（Codex CLI・Claude Code）を最新版に上げて同じモデルで試し直す（2026-10-20 指示）。古い版は新しいモデルを知らないことが多い。上げ方は入れた方法に合わせる（例: `npm install -g @openai/codex@latest`、`claude update`）。上げても使えないときだけ、使えるモデルを確かめて代替し、代替したことを報告に書く。
 - [確認 2026-10-17 | 根拠 docs/writing-policy.md] 最終報告と、人が読む文書（README・設計書・PR の説明）を書くときは、先に `~/.agents/docs/writing-policy.md` を読む。
 - [確認 2026-10-08 | 根拠 docs/ui-policy.md] 画面（UI）を作る・直す作業では、計画・実装・レビューのどの役割でも、先に UI 規約を読む。プロジェクトに UI 規約があればそちら、無ければ `~/.agents/docs/ui-policy.md`。
 
