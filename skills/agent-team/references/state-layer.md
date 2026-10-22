@@ -11,6 +11,7 @@
 | --- | --- | --- |
 | 作業記憶 | `.agents/state/STATE.md` | activeミッションの1行サマリ+blocker+受入負債+直近Log |
 | 中期記憶 | `.agents/state/missions/M-xxx.md`（完了で `closed/` へ） | ミッションの経緯・判断の詳細 |
+| 解説ページの記録 | `.agents/state/explain/E-xxx.md` | 人間向けに作った解説ページ（Artifact）の索引と、設計判断の結論・理由。書き方は explain-page スキルが正本 |
 | 候補箱 | `.agents/state/INBOX.md` | 教訓・罠の初出はここ。回数で正式記憶へ昇格 |
 | 長期記憶（Orchestrator向け） | `.agents/state/MEMORY.md` | ミッションを回す知見だけ（人間の決定・好みは AGENTS.md へ） |
 | 長期記憶（全員向け） | リポジトリ `AGENTS.md` | コードを壊さないための規約と人間の決定・好み。全セッションが読む |
@@ -22,7 +23,7 @@
   （プロジェクトの入口ルールもハーネスの方式で読む）。`closed/`・`queue/`・INBOX.md は通常の起動時に読まない。statusは現状報告に必要なSTATE/BACKLOG/queueを読み取り専用で調べる。
 - 起動時に読むファイルは**すべて上限を持つ**。上限があるから起動コストが一定に保たれる。
   上限は `memory-ops/scripts/check-size.sh` で測る（SessionStart hook でも毎回表示される）。
-- 過去の判断が必要になったら、コンテキストに載せず ラッパーで解決したresearch担当に `missions/closed/` と `git log` をgrepさせて要点だけ回収する。
+- 過去の判断が必要になったら、まず `bash ~/.agents/skills/explain-page/scripts/list.sh <リポジトリ> 設計判断` で設計判断の結論を1行ずつ見る。足りなければ、コンテキストに載せず ラッパーで解決したresearch担当に `missions/closed/`・`explain/`・`git log` をgrepさせて要点だけ回収する。
 
 ## 書き込み権
 
