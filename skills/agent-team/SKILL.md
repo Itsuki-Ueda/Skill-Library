@@ -62,7 +62,7 @@ Git操作は `~/.agents/skills/git-ops/SKILL.md` に従う。
 
 ### [1] Intake
 - 依頼が作業の型に当たるなら、その型を読む: 不具合修正 `references/types/bug-fix.md` / 機能追加 `feature.md` / リファクタ `refactor.md` / 性能 `perf.md` / 比較評価（方式・モデル等を比べて人間が選ぶ） `comparison.md` / 画面 `ui.md`（いずれも `references/types/`）。型は、自分の見出しにある段の中身を決める。見出しの無い段は本体どおり。2つに当たる（画面を含む機能追加など）なら両方を読む。当たらない依頼は型なしで進める。選んだ型はミッションの `型:` に書く（executor はここを見て型の[6]を完了ゲートに入れる）。
-- `bash ~/.agents/skills/explain-page/scripts/list.sh <リポジトリ> 設計判断` で過去の設計判断を見て、依頼に関係する決定があればミッションの制約に `E-xxx` 付きで書く。決定と食い違う依頼なら、進める前に人間に確かめる。
+- `bash ~/.agents/skills/explain-page/scripts/list.sh <リポジトリ> 設計判断` で過去の設計判断を見て、依頼に関係する決定があればミッションの制約に `E-xxx` 付きで書く。決定と食い違う依頼なら、進める前に人間に確かめる。 判断待ち（`Status: open`）の記録があれば、explain-page の「判断待ちを閉じる」に従い、Intake の確認と一緒に人間に聞いて閉じる。
 - Goal、検証可能なAcceptance、制約、Human Escalationを確定する。不明点だけ人間に確認する。「ミッションの単位」に照らして分ける・まとめるべきなら、ここで人間に提案する。
 - `references/templates/MISSION_TEMPLATE.md` からM-xxxを採番し、STATEに索引を追加する。
 - ブランチはgit-opsの命名に従う（例: `feat/m-xxx-summary`）。
