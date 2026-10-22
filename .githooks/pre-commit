@@ -10,6 +10,13 @@ set -euo pipefail
 # 非公開情報の混入検査（public repo）。ヒットしたらコミットを止める。正本: skill-ops「公開範囲」
 bash skills/skill-ops/scripts/publish-guard.sh --staged || exit 1
 
+# 毎回読む本体の上限（正本: skill-ops「編集ルール」）。経緯は references/evidence.md へ
+CAP=20000; F=skills/agent-team/SKILL.md
+if git diff --cached --name-only | grep -qx "$F"; then
+  SIZE=$(git show ":$F" | wc -c)
+  [ "$SIZE" -le "$CAP" ] || { echo "[pre-commit] 止める: $F が ${SIZE} バイト（上限 ${CAP}）。経緯を evidence.md へ、段だけの決まりを段のファイルへ移す" >&2; exit 1; }
+fi
+
 MANIFEST=".codex-plugin/plugin.json"
 [ -f "$MANIFEST" ] || exit 0
 

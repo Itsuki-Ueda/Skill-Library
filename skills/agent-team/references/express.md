@@ -9,7 +9,7 @@
 
 ## 手順
 1. 作業の型を `~/.agents/skills/agent-team/references/types/README.md` の表で中身から選び（当たるものは全部）、その型の[3]と[6]の欄を契約と検証に入れる。
-   `templates/EXPRESS_TEMPLATE.md` のGoal / Acceptance / Allowed paths / Verificationを埋め、queue/tasks/T-E-xxx.mdへ保存する。この手順と雛形は、既読でもT-E-xxxを始めるたびに読み直す（E8）。
+   `templates/EXPRESS_TEMPLATE.md` のGoal / Acceptance / Allowed paths / Verificationを埋め、queue/tasks/T-E-xxx.mdへ保存する。この手順と雛形は、既読でもT-E-xxxを始めるたびに読み直す（R8）。
    画面に表示されるファイルを変える、またはモックがある場合は「画面確認」欄も埋める。要否・モックの扱い・撮影方法はdispatch「画面確認（前倒し）」に従う（expressでも省略しない）。
 2. ハーネスのexpress担当へ契約とteam-worker規約を渡す。session IDと成果物を記録する。
 3. 親が報告をqueue/reportsへ保存し、差分・新規ファイル・契約外変更・要件・退行を直読する。版と判定はdispatchの形式でqueue/reviewsへ残す。画面確認がある場合は、workerの画像を開いて（モックがあれば並べて）確認し、その記録が揃うまでcommitしない。
