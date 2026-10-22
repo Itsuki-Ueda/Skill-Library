@@ -1,9 +1,7 @@
 # state-layer.md — 状態レイヤーの運用規約
 
-「消すのではなく沈める」記憶モデル。セッションが死んでも次のセッションが
-ファイルだけから現在地を再構築できる状態を常に保つ（セッション単位Leadの生命線）。
-**肥大化対策・記憶の書式・書き先判定・蒸留/最新化/昇格の手順は `memory-ops` スキルが正本**
-（`~/.agents/skills/memory-ops/SKILL.md`）。ここには構造とライフサイクルだけを置く。
+セッションが死んでも、次のセッションがファイルだけから現在地を再構築できる状態を保つ。
+上限・記憶の書式・書き先判定・整理手順は `memory-ops` スキルが正本。ここには構造とライフサイクルだけを置く。
 
 ## 層構造
 
@@ -17,19 +15,14 @@
 | 長期記憶（全員向け） | リポジトリ `AGENTS.md` | コードを壊さないための規約と人間の決定・好み。全セッションが読む |
 | 履歴 | git履歴 + `missions/closed/` + `.agents/queue/` | 無制限。想起はresearcherに掘らせる |
 
-各ファイルの上限・昇格回数・整理手順は memory-ops が正本（ここに数字を写さない）。
-
-- 本流・resumeが起動時に読む状態は STATE.md → 対象ミッション → MEMORY.md **だけ**
-  （プロジェクトの入口ルールもハーネスの方式で読む）。`closed/`・`queue/`・INBOX.md は通常の起動時に読まない。statusは現状報告に必要なSTATE/BACKLOG/queueを読み取り専用で調べる。
-- 起動時に読むファイルは**すべて上限を持つ**。上限があるから起動コストが一定に保たれる。
-  上限は `memory-ops/scripts/check-size.sh` で測る（SessionStart hook でも毎回表示される）。
-- 過去の判断が必要になったら、まず `bash ~/.agents/skills/explain-page/scripts/list.sh <リポジトリ> 設計判断` で設計判断の結論を1行ずつ見る。足りなければ、コンテキストに載せず ラッパーで解決したresearch担当に `missions/closed/`・`explain/`・`git log` をgrepさせて要点だけ回収する。
+- 起動時に読む状態は SKILL.md「読み込みと設定」の3つだけ。`closed/`・`queue/`・INBOX.md は読まない。
+- 起動時に読むファイルはすべて上限を持つ（起動コストを一定に保つため。計測は下記）。
+- 過去の判断は、まず SKILL.md [1] の `list.sh` で結論を見る。足りなければresearch担当に `missions/closed/`・`explain/`・`git log` をgrepさせて要点だけ回収する。
 
 ## 書き込み権
 
-- STATE.md・INBOX.md・MEMORY.md・BACKLOG.md に書けるのは**Orchestratorだけ**。ミッション記帳の委任は次項のexecutor例外に限る。
-- worker・サブエージェントの成果物は親が `queue/`（reports/reviews/research）へ保存する。明示委任したexecutorだけはミッション・queueへの記帳可。STATE縮約は親だけ。
-  契約のDo not modifyにも状態ファイルを必ず入れる。
+- STATE.md・INBOX.md・MEMORY.md・BACKLOG.md に書けるのはOrchestratorだけ。worker・サブエージェントの成果物は親が `queue/`（reports/reviews/research）へ保存する。
+- 例外は明示委任したexecutorによるミッション・queueへの記帳だけ（SKILL.md [3.5]）。契約のDo not modifyに状態ファイルを入れる。
 
 ## STATE.md の構造
 
@@ -42,13 +35,9 @@
 ## Log（直近の完了記録・時系列1行ずつ。件数は memory-ops の distill に従う）
 ```
 
-- **この4節以外の節を作らない**。「触るときの原則」「次に触る人へ」のような
-  設計不変条件・罠の集積はSTATEに書かない（第2のMEMORYができ、起動コストが際限なく増える。
-  実例: 規約外の節と18行のLogエントリで 513 行に達したプロジェクトがある）。
-  罠・教訓は memory-ops の「記録の入口」（INBOX.md）へ。
+- この4節以外の節を作らない。罠・教訓は memory-ops の「記録の入口」（INBOX.md）へ。
 - 完了ミッションの補足段落をMissions表の下に積まない。警告が要るなら受入負債表へ1行。
-- **Logは1エントリ1行厳守**。1行に収まらない内容は、ミッションファイルか INBOX に書いてから
-  STATEには書かない（詳細をLogに書くのは縮約の不履行であり、二重記録でもある）。
+- Logは1エントリ1行。収まらない詳細はミッションファイルか INBOX に書く。
 
 ## ミッションのライフサイクル
 
@@ -56,26 +45,15 @@
    `Active session` に自セッションを記載。
 2. 工程の進行・判断・dispatch記録はすべてミッションファイルに書く（STATE.mdには書かない）。
 3. [7]完了時の**縮約（強制ステップ）**:
-   - STATE.mdのMissions行を完了記録1行（ID・成果・commit範囲）に縮めてLogへ移す。
-   - 得られた教訓・罠は memory-ops の「記録の入口」に従って INBOX.md へ（初出）、
-     または昇格の回数（memory-ops）に達したら昇格、人間指示なら直行。**MEMORY.md に追記して終わりにしない。**
-   - ミッションファイルの `Active session` をクリアし、`bash ~/.agents/skills/agent-team/scripts/close-mission.sh <M-ID> [<作業場所>]` で `missions/closed/` へ移動する（台帳への記録も同時に行う）。
-   - `check-size.sh` を実行し、閾値超過があれば memory-ops の該当サブコマンドを実施する。
-   - `.agents/` の変更をコミット。
-   - **縮約と計測が済むまで人間への完了報告を締めない。**
+   - Missions行を完了記録1行（ID・成果・commit範囲）にしてLogへ移す。
+   - 教訓・罠は memory-ops の「記録の入口」へ（MEMORY.md に直接追記して終わりにしない）。
+   - `Active session` をクリアし、SKILL.md [7] の `close-mission.sh` で閉じる。
+   - `check-size.sh` で計測・整理し、`.agents/` をコミットする。**ここまで済むまで完了報告を締めない。**
 4. 中断時（セッション終了・人間の停止指示）: 現在地・次アクション・未回収のcodex session idを
    ミッションファイルに書き残してから閉じる。`Active session` はクリアする。
 
 ## 計測のタイミング（agent-team 側の義務）
 
-`check-size.sh` を次の全てで実行し、超過があればmemory-opsを実施する（本流・resumeは着手前、[7]は終了時。statusは例外）
-（提案ではなく実施。超過が軽微〔閾値+10%未満〕なら同セッションの [7] まで先送りしてよい）:
+`check-size.sh` を resume・[0] 前提確認・[7] 縮約後に実行し、超過があれば memory-ops を実施する（提案でなく実施。閾値+10%未満なら同セッションの [7] まで先送り可）。`/agent-team status` は計測・報告のみで、書込・commitをしない。
 
-- `/agent-team status` は計測・報告のみ（本節の整理義務の例外）。書込・commitをしない。
-- `/agent-team resume`
-- ミッションフロー [0] 前提確認
-- ミッションフロー [7] 縮約後
-
-ミッションファイル自体が長大化した場合（長期ミッション）: Timeline/Logの古い節を
-同ファイル末尾の「Archive」節へ移し、冒頭のTasks表とNext actionsだけで現在地が
-分かる状態を保つ。
+ミッションファイルが長大化したら、古いTimeline/Logを末尾の「Archive」節へ移し、冒頭のTasks表とNext actionsで現在地が分かるようにする。
