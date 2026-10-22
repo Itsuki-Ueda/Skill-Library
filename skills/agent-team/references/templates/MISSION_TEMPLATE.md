@@ -2,7 +2,7 @@
 
 Status: intake | planning | executing | integrating | done
 Branch: {git-opsに従うブランチ名}
-型: {references/types/ のファイル名（例: bug-fix.md）。2つ当たるなら両方。当たらなければ なし}
+型: {references/types/README.md の表で選んだファイル名（例: feature.md, perf.md）。当たるものは全部。当たらなければ なし}
 Active session: <引き継ぎ時に記載・終了時にクリア>
 
 ## Goal
@@ -12,6 +12,14 @@ Active session: <引き継ぎ時に記載・終了時にクリア>
 ## Acceptance
 
 - <検証可能な成功条件>
+
+## 型の対応表
+
+{選んだ型ごとに、型のファイルの見出しの段の項目ごとに1行。型が なし なら節ごと消す}
+
+| 型の段 | この計画では |
+| --- | --- |
+| {feature [6] 本物で確かめる} | {Acceptance 3 で確かめる／やらない理由} |
 
 ## Human Escalation
 
