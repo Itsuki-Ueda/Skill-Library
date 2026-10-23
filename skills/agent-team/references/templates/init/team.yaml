@@ -12,6 +12,8 @@
 #   fix_rounds_plan: 2                   # プランレビューの往復を絞る
 
 # --- プロジェクト固有（必須・init時に必ず記入） ---
+# 状況ページに出すプロジェクトの名前（日本語の短い名前。例: EC分析）。変えるときはここだけ直す。
+display_name: "{表示名}"
 # 完了ゲートで実行するコマンド。未記入のままミッションを回さない。
 verify:
   post_change: "{lint・型チェック・テスト等。例: npm run lint && npm run typecheck && npm test}"

@@ -5,17 +5,17 @@
 :root{
   --bg:#f6f7f9;--panel:#ffffff;--fg:#1d2430;--muted:#5d6878;--line:#dde2e9;
   --accent:#2f5fb3;--wait:#b4540a;--wait-bg:#fdf0e3;--run:#2f5fb3;--run-bg:#e8eefa;
-  --done:#2e7d4f;--done-bg:#e6f4ec;--stop:#b3261e;--stop-bg:#fbe9e7;
+  --done:#2e7d4f;--done-bg:#e6f4ec;--check:#5b4ea8;--check-bg:#efecfa;--stop:#b3261e;--stop-bg:#fbe9e7;
   --sans:"Noto Sans JP",system-ui,sans-serif;--mono:ui-monospace,"SFMono-Regular",Menlo,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#12161c;--panel:#1a2029;--fg:#e4e9f0;--muted:#9aa5b4;--line:#2c3542;
   --accent:#7ea6ec;--wait:#f0a35e;--wait-bg:#3a2a1a;--run:#7ea6ec;--run-bg:#1e2a40;
-  --done:#6cc995;--done-bg:#17301f;--stop:#f08a80;--stop-bg:#3a1d1a;color-scheme:dark}}
+  --done:#6cc995;--done-bg:#17301f;--check:#b3a8f0;--check-bg:#2a2540;--stop:#f08a80;--stop-bg:#3a1d1a;color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#12161c;--panel:#1a2029;--fg:#e4e9f0;--muted:#9aa5b4;--line:#2c3542;
   --accent:#7ea6ec;--wait:#f0a35e;--wait-bg:#3a2a1a;--run:#7ea6ec;--run-bg:#1e2a40;
-  --done:#6cc995;--done-bg:#17301f;--stop:#f08a80;--stop-bg:#3a1d1a;color-scheme:dark}
+  --done:#6cc995;--done-bg:#17301f;--check:#b3a8f0;--check-bg:#2a2540;--stop:#f08a80;--stop-bg:#3a1d1a;color-scheme:dark}
 body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.6}
 .wrap{max-width:1100px;margin:0 auto;padding-block:24px 40px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
@@ -37,50 +37,84 @@ td.you{color:var(--wait);font-weight:600}
 input[type=checkbox]{width:18px;height:18px;accent-color:var(--done);cursor:pointer}
 input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .empty{padding:24px;color:var(--muted)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar .lab{font-size:.75rem;letter-spacing:.06em;color:var(--muted);margin-right:4px}
+button.f{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:3px 12px;cursor:pointer}
+button.f[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:600}
+button.chip{border:none;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer}
+button.chip[aria-pressed="true"]{outline:2px solid currentColor;outline-offset:1px}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.s-check{color:var(--check);background:var(--check-bg)}
+tr.you td:first-child{box-shadow:inset 3px 0 0 var(--wait)}
 .foot{color:var(--muted);font-size:.8rem;margin:0}
 </style>
 <div class="wrap">
   <h1>ミッション状況</h1>
   <p class="sub" id="sub">読み込み中…</p>
-  <div class="counts" id="counts"></div>
+  <div class="bar" id="projects"></div>
+  <div class="bar" id="counts"></div>
   <div class="box"><table>
-    <thead><tr><th>ミッション</th><th>やること</th><th>状態</th><th>待っているもの</th><th>次</th><th>確認</th></tr></thead>
+    <thead><tr><th>ミッション</th><th>概要</th><th>状態</th><th>ブロッカー</th><th>確認</th></tr></thead>
     <tbody id="rows"></tbody>
-  </table><div class="empty" id="empty" hidden>まだミッションがありません。agent-team が報告するときに、ここへ行が増えます。</div></div>
-  <p class="foot">完了した行は「確認」にチェックすると消えます。行はエージェントが報告のたびに書き換えます。</p>
+  </table><div class="empty" id="empty" hidden>表示する行がありません。絞り込みを外すか、agent-team の次の報告を待ってください。</div></div>
+  <p class="foot">完了した行は「確認」にチェックすると消えます。バッジを押すとその状態だけに絞れます。行はエージェントが報告のたびに書き換えます。</p>
 </div>
 <script>
-// 状態の7つと並び順（人間の番 → 進行中 → 完了）
-const ORDER={"判断待ち":0,"計画の承認待ち":0,"止まっている":1,"計画中":2,"実装中":2,"レビュー中":2,"完了":3};
-const CLS={0:"s-wait",1:"s-stop",2:"s-run",3:"s-done"};
+// 状態の8つ。グループは並び順（あなたの番 → 止まっている → 進行中 → 本番確認待ち → 完了）
+const STATES=["計画中","計画の承認待ち","判断待ち","実装中","レビュー中","本番確認待ち","止まっている","完了"];
+const GROUP={"計画の承認待ち":0,"判断待ち":0,"止まっている":1,"計画中":2,"実装中":2,"レビュー中":2,"本番確認待ち":3,"完了":4};
+const CLS={0:"s-wait",1:"s-stop",2:"s-run",3:"s-check",4:"s-done"};
+const YOU="あなたの番";
 const $=id=>document.getElementById(id);
-let missions=[],seen=new Set();
-function cell(tr,text,cls){const td=document.createElement("td");if(cls)td.className=cls;td.textContent=text||"—";tr.appendChild(td);return td}
+let missions=[],seen=new Set(),db=null;
+const st={project:"",status:"",remainingOnly:true};
+try{Object.assign(st,JSON.parse(localStorage.getItem("ms-filter")||"{}"))}catch(e){}
+const save=()=>{try{localStorage.setItem("ms-filter",JSON.stringify(st))}catch(e){}};
+const isYou=m=>String(m.waiting||"").startsWith("あなた");
+const grp=m=>isYou(m)?0:(GROUP[m.status]??2);
+const proj=m=>m.project||m.repo||"（不明）";
+const visible=m=>!(m.status==="完了"&&seen.has(m._id));
+function chip(text,cls,key){const b=document.createElement("button");b.type="button";b.className="chip "+cls;b.textContent=text;
+  b.setAttribute("aria-pressed",String(st.status===key));b.onclick=()=>{st.status=st.status===key?"":key;save();render()};return b}
+function cell(tr,text){const td=document.createElement("td");td.textContent=text||"—";tr.appendChild(td);return td}
 function render(){
-  const list=missions.filter(m=>!(m.status==="完了"&&seen.has(m._id)))
-    .sort((a,b)=>(ORDER[a.status]??2)-(ORDER[b.status]??2)||String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")));
+  const live=missions.filter(visible);
+  const remaining=new Set(live.filter(m=>m.status!=="完了").map(proj));
+  const projects=[...new Set(live.map(proj))].filter(p=>!st.remainingOnly||remaining.has(p)).sort();
+  if(st.project&&!projects.includes(st.project))st.project="";
+  // プロジェクトのボタン
+  const pb=$("projects");pb.textContent="";
+  const lab=document.createElement("span");lab.className="lab";lab.textContent="プロジェクト";pb.appendChild(lab);
+  for(const [name,val] of [["すべて",""],...projects.map(p=>[p,p])]){const b=document.createElement("button");b.type="button";b.className="f";b.textContent=name;
+    b.setAttribute("aria-pressed",String(st.project===val));b.onclick=()=>{st.project=val;save();render()};pb.appendChild(b)}
+  const ro=document.createElement("button");ro.type="button";ro.className="f";ro.textContent="残りがあるものだけ";
+  ro.setAttribute("aria-pressed",String(st.remainingOnly));ro.onclick=()=>{st.remainingOnly=!st.remainingOnly;save();render()};pb.appendChild(ro);
+  // 絞り込み
+  let list=live.filter(m=>(!st.project||proj(m)===st.project)&&(!st.remainingOnly||remaining.has(proj(m))));
+  const base=list;
+  if(st.status)list=list.filter(m=>st.status===YOU?isYou(m):m.status===st.status);
+  list.sort((a,b)=>grp(a)-grp(b)||proj(a).localeCompare(proj(b))||String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")));
+  // 件数のバッジ（押すと絞り込み）
+  const cb=$("counts");cb.textContent="";
+  const lab2=document.createElement("span");lab2.className="lab";lab2.textContent="状態";cb.appendChild(lab2);
+  const nYou=base.filter(isYou).length;if(nYou)cb.appendChild(chip(YOU+" "+nYou,"s-wait",YOU));
+  for(const s of STATES){const n=base.filter(m=>m.status===s).length;if(n)cb.appendChild(chip(s+" "+n,CLS[GROUP[s]],s))}
   const tb=$("rows");tb.textContent="";
   for(const m of list){
-    const g=ORDER[m.status]??2,tr=document.createElement("tr");
-    const id=cell(tr,m.mid,"id");const r=document.createElement("small");r.textContent=m.repo||"";id.appendChild(r);
+    const tr=document.createElement("tr");if(isYou(m))tr.className="you";
+    const id=cell(tr,m.mid);id.className="id";const r=document.createElement("small");r.textContent=proj(m);id.appendChild(r);
     cell(tr,m.title);
-    const st=document.createElement("td"),c=document.createElement("span");c.className="chip "+CLS[g];c.textContent=m.status||"—";st.appendChild(c);tr.appendChild(st);
-    cell(tr,m.waiting,String(m.waiting||"").startsWith("あなた")?"you":"");
-    cell(tr,m.next);
+    const sc=document.createElement("td");sc.appendChild(chip(m.status||"—",CLS[GROUP[m.status]??2],m.status));tr.appendChild(sc);
+    const w=cell(tr,m.waiting);if(isYou(m))w.className="you";
     const ck=document.createElement("td");
     if(m.status==="完了"){const b=document.createElement("input");b.type="checkbox";b.id="seen-"+m._id;
       b.setAttribute("aria-label",m.mid+" を確認した");b.onchange=()=>markSeen(m._id,b);ck.appendChild(b)}
     tr.appendChild(ck);tb.appendChild(tr);
   }
   $("empty").hidden=list.length>0;
-  const n={0:0,1:0,2:0,3:0};list.forEach(m=>n[ORDER[m.status]??2]++);
-  const lab={0:"あなたの番",1:"止まっている",2:"進行中",3:"完了（未確認）"};
-  $("counts").textContent="";
-  for(const k of [0,1,2,3]){if(!n[k])continue;const s=document.createElement("span");s.className="chip "+CLS[k];s.textContent=lab[k]+" "+n[k];$("counts").appendChild(s)}
   const last=missions.map(m=>m.updatedAt||"").sort().pop();
   $("sub").textContent=last?"最終更新 "+last.replace("T"," ").slice(0,16):"まだ更新はありません";
 }
-let db=null;
 async function markSeen(id,box){
   if(!db)return;box.disabled=true;
   try{await db.doc("seen/"+id).set({at:new Date().toISOString()})}catch(e){box.disabled=false;box.checked=false;$("sub").textContent="チェックを保存できませんでした。もう一度押してください。"}
