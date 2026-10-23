@@ -93,6 +93,8 @@ function render(){
   // 絞り込み
   let list=live.filter(m=>(!st.project||proj(m)===st.project)&&(!st.remainingOnly||remaining.has(proj(m))));
   const base=list;
+  // 絞り込み中の状態が0件になったら（完了を全部チェックした等）、見えないバッジに縛られないよう解除する
+  if(st.status&&!base.some(m=>st.status===YOU?isYou(m):m.status===st.status)){st.status="";save()}
   if(st.status)list=list.filter(m=>st.status===YOU?isYou(m):m.status===st.status);
   list.sort((a,b)=>grp(a)-grp(b)||proj(a).localeCompare(proj(b))||String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")));
   // 件数のバッジ（押すと絞り込み）
