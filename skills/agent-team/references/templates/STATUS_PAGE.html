@@ -29,7 +29,8 @@ h1{font-size:1.4rem;margin:0;text-wrap:balance}
 .box{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow-x:auto}
 table{border-collapse:collapse;width:100%;min-width:760px;font-size:.9rem}
 th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-size:.75rem;letter-spacing:.06em;color:var(--muted);font-weight:600}
+th{font-size:.75rem;letter-spacing:.06em;color:var(--muted);font-weight:600;white-space:nowrap}
+th:last-child,td:last-child{width:1%;white-space:nowrap;text-align:center}
 tr:last-child td{border-bottom:none}
 td.id{font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums}
 td.id small{display:block;color:var(--muted);font-family:var(--sans)}
