@@ -20,7 +20,7 @@
 
 - Artifact の一覧から題名「ミッション状況」を探す。無ければ `templates/STATUS_PAGE.html` を capabilities `{"db": {}}` で公開して作る。リポジトリごとに作らない。
 - そのリポジトリのミッションのうち、ミッションファイルの「担当:」が自分（`git config user.email`）のものだけを書く。STATE.md は全員のミッションを含むので、そのまま写さない。「担当:」の行が無い古いミッションは書く。
-- 書くミッションを、ページの記録（ArtifactData）の `missions` に1行ずつ書く。doc_id は `<リポジトリのディレクトリ名>-<M-ID>`。項目は repo・project（`.agents/config/team.yaml` の `display_name` を写す。無ければ日本語の短い名前を決めてそこへ1行足す）・mid・title（概要。人の言葉で1行）・status・waiting（ブロッカー。下の書き方）・updatedAt（ISO 8601）・url（このセッションを開くURL。環境変数 `CLAUDE_CODE_REMOTE_SESSION_ID` の `cse_` を `session_` に替えて `https://claude.ai/code/` の後ろに付ける。変数が無ければ書かない）。閉じたミッションは閉じた回の報告で「完了」にし、以後は書かない。
+- 書くミッションを、ページの記録（ArtifactData）の `missions` に1行ずつ書く。doc_id は `<リポジトリのディレクトリ名>-<M-ID>`。項目は repo・project（`.agents/config/team.yaml` の `display_name` を写す。無ければ日本語の短い名前を決めてそこへ1行足す）・mid・title（概要。人の言葉で1行）・status・waiting（ブロッカー。下の書き方）・updatedAt（ISO 8601）・url（このセッションを開くリンク。クラウドでは環境変数 `CLAUDE_CODE_REMOTE_SESSION_ID` の `cse_` を `session_` に替えて `https://claude.ai/code/` の後ろに付ける。デスクトップアプリでは `get_session` を `self` で呼び、返ってくる `claude://` のリンクを写す。どちらも無ければ書かない）。閉じたミッションは閉じた回の報告で「完了」にし、以後は書かない。
 - status は「計画中・計画の承認待ち・判断待ち・実装中・レビュー中・本番確認待ち・止まっている・完了」の8つだけ（ほかの値はページで「進行中」に入る）。本番確認待ちは、統合済みで本番での確かめを待っているもの。
 - waiting（ブロッカー）は、今ミッションを止めているものを頭に印を付けて書く。人間なら「あなた: 〜」（ページの「あなたの番」に集まる）、それ以外は「本番: 次の振り分けの作り直し」「M-070 の完了」「先方: 仕様の回答」のように書く。止めるものが無ければ「なし」。
 - 既にある行は先に list で version を読み、`if_version` を付けて batch の set でまとめて書く。version が合わず断られたら読み直して書き直す。
