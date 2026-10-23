@@ -32,6 +32,21 @@ over_if STATE.md  "$s" 100 distill
 over_if MEMORY.md "$m" 150 refresh
 over_if INBOX.md  "$i" 100 promote 件
 
+# STATE.md の中身: Log の長すぎる行（120字超）と、Missions に残った完了行（正本: memory-ops distill）
+if [ -f "$state/STATE.md" ]; then
+  long=0; done_rows=0; sec=""
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in "## "*) sec="${line#\#\# }"; continue ;; esac
+    case "$sec" in
+      Log*) line="${line%$'\r'}"; [ -n "$line" ] && [ "$(LC_ALL=C.UTF-8 bash -c 'printf %s "${#1}"' _ "$line")" -gt 120 ] && long=$((long+1)) ;;
+      Missions*) st=$(printf '%s' "$line" | awk -F'|' '/^\|/{gsub(/[ *]/,"",$4); print $4}')
+        case "$st" in done*|完了*|closed*) done_rows=$((done_rows+1)) ;; esac ;;
+    esac
+  done < "$state/STATE.md"
+  over_if "STATE.md(Logの120字超)" "$long" 0 distill 件
+  over_if "STATE.md(Missionsの完了行)" "$done_rows" 0 distill 件
+fi
+
 msg="[memory-ops] AGENTS.md=${a} STATE.md=${s} MEMORY.md=${m} INBOX.md=${i}件（ほかは行。- は無し）"
 if [ -n "$over" ]; then
   msg="$msg | 閾値超過:$over | agent-team起動時は作業前に /memory-ops を実施、それ以外は人間に告げて判断を仰ぐ"

@@ -45,7 +45,7 @@
    `Active session` に自セッションを記載。
 2. 工程の進行・判断・dispatch記録はすべてミッションファイルに書く（STATE.mdには書かない）。
 3. [7]完了時の**縮約（強制ステップ）**:
-   - Missions行を完了記録1行（ID・成果・commit範囲）にしてLogへ移す。
+   - Missions行を消し、Logに120字までの1行（「日付 番号 done: できたこと1文。PR かコミット」）を足す。経緯はミッションファイルに書く。
    - 教訓・罠は memory-ops の「記録の入口」へ（MEMORY.md に直接追記して終わりにしない）。
    - `Active session` をクリアし、SKILL.md [7] の `close-mission.sh` で閉じる。
    - `check-size.sh` で計測・整理し、`.agents/` をコミットする。**ここまで済むまで完了報告を締めない。**
