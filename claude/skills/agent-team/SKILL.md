@@ -41,7 +41,7 @@ executor運用では、独立性はCodexレビュー、別ベンダーの視点�
 - executorはコンテキスト上限に近づいたら `~/.agents/skills/agent-team/references/templates/HANDOVER_TEMPLATE.md` の形で引き継ぎメモをミッションのLogに残し、親へ交代を求める。交代のたびに代・理由・消費トークンをミッションに記録する。理由の無い交代は記録しない。
 
 ## 検証・縮退
-- 完了ゲートはexecutor運用ではexecutor自身が実行し、直接進行管理では親が実行する。
+- 完了ゲートはexecutor運用ではexecutor自身が実行し、直接進行管理では親が実行する。元の実行記録を親が観測できない場合は未検証とし、親側で再実行する。
 - CLI workerの検証は `python ~/.agents/skills/agent-team/scripts/cx_evidence.py <session id> --worktree <作業場所>` でCodexのセッション記録を見る。契約のVerificationのコマンドが最終変更より後に終了コード0で記録されていれば親は再実行せず、記録に無い・変更前・sandboxで実行できなかったものだけ親が実行する。親が集約ファイル登録などで作業場所を変えた後は、影響する検証を親が実行する。workerの撮影（`capture.sh`）も同じ記録で最終変更より後かを確かめ、PNGはReadで開いて見る。
 - sandbox内のworkerが起動したプロセス（塞がった開発サーバのポート等）は親の権限では止められないので、Codexに `Stop-Process -Id <PID>` を実行させる（PIDは `netstat -ano` で特定）。
 - CLI restricted sandboxで不可の環境準備・Git書込・ブラウザ等は、実行可能な親側経路が担当する。ベンダー名だけで可否を判断しない。
