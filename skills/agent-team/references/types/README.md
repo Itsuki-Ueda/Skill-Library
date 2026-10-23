@@ -29,6 +29,5 @@
 | 型の段 | この計画では |
 | --- | --- |
 | refactor [3] 消す → 作り替える → 後片付けの順 | やらない。消すものは M-013 に回す（理由: ○○） |
-| refactor [6] 読み手の負担が減ったか確かめる | Acceptance 4 |
 
 計画レビューの前に `python3 ~/.agents/skills/agent-team/scripts/check_types.py <ミッションファイル>` を流し、止まったら直す。

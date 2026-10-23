@@ -14,7 +14,7 @@ agent-team中の分担は本書と共通本体を適用し、通常セッショ�
 - `~/.agents/docs/codex-protocol.md` は、CLIの起動失敗・sandboxの制限・`cx-run.sh` に無い形が要るときだけ読む。食い違ったらdispatchに従う。
 - CLIは `bash ~/.agents/skills/agent-team/scripts/cx-run.sh`（impl / ask / review / resume）で、プロンプトをファイルに書いてBashツールの `run_in_background` で起動する。コマンドを手で組み立てない。スクリプトが `<out>`・`<out>.err`・`<out>.exit` を作り、完了時にsession IDを1行で出す。
 - `agent:` はAgentツールで名前指定して起動し、継続は同じAgentへのSendMessage。role skillの正本パスと契約/対象を必ず渡す。Plugin経由（クラウド）では名前に `skill-library:` が付く。
-- session IDと `<out>` 系のパスを記録し、回収は完了通知で行う。起動元のexecutorが交代して通知を受けられない場合だけ、後任は `<out>.exit` の出現を待機手段（Monitor等）で1回待ち、**終了コード0かつ `-o` が空でない**ことで完了と判定する（usage limit・タイムアウト・中断時に `-o` が残るかは未確認）。定期的に見に行かない。`-o` の中身の合否（NEED-DECISION等）は別に読む。
+- session IDと `<out>` 系のパスを記録し、回収は完了通知で行う。起動元のexecutorが交代して通知を受けられない場合だけ、後任は `<out>.exit` の出現を待機手段（Monitor等）で1回待ち、**終了コード0かつ `-o` が空でない**ことで完了と判定する。定期的に見に行かない。`-o` の中身の合否（NEED-DECISION等）は別に読む。
 - Windowsのgit `ref:path` はPowerShellで全体を引用する。Git Bashが必要ならMSYS_NO_PATHCONV=1を使う。
 - 別のworktree（他ミッション・レーン）のファイルを書くときは、先に `EnterWorktree(path=<そのworktree>)` で切り替えてから書き、終わったら `EnterWorktree` で元のworktreeへ戻る。別worktreeへのWrite/Editはフックで止められるため。止められてもBashやコピーで回り込まない（WriteとBashを同時に送らない）。レーンのexecutorは自分のレーンのworktreeに `EnterWorktree` してから作業する。
 

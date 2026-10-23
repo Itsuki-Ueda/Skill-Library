@@ -1,0 +1,95 @@
+<title>ミッション状況</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 表1枚の作業台。人間の番の行が先頭、完了は末尾でチェックすると消える */
+:root{
+  --bg:#f6f7f9;--panel:#ffffff;--fg:#1d2430;--muted:#5d6878;--line:#dde2e9;
+  --accent:#2f5fb3;--wait:#b4540a;--wait-bg:#fdf0e3;--run:#2f5fb3;--run-bg:#e8eefa;
+  --done:#2e7d4f;--done-bg:#e6f4ec;--stop:#b3261e;--stop-bg:#fbe9e7;
+  --sans:"Noto Sans JP",system-ui,sans-serif;--mono:ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161c;--panel:#1a2029;--fg:#e4e9f0;--muted:#9aa5b4;--line:#2c3542;
+  --accent:#7ea6ec;--wait:#f0a35e;--wait-bg:#3a2a1a;--run:#7ea6ec;--run-bg:#1e2a40;
+  --done:#6cc995;--done-bg:#17301f;--stop:#f08a80;--stop-bg:#3a1d1a;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161c;--panel:#1a2029;--fg:#e4e9f0;--muted:#9aa5b4;--line:#2c3542;
+  --accent:#7ea6ec;--wait:#f0a35e;--wait-bg:#3a2a1a;--run:#7ea6ec;--run-bg:#1e2a40;
+  --done:#6cc995;--done-bg:#17301f;--stop:#f08a80;--stop-bg:#3a1d1a;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.6}
+.wrap{max-width:1100px;margin:0 auto;padding-block:24px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.4rem;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:0;font-size:.9rem}
+.counts{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:600;white-space:nowrap}
+.s-wait{color:var(--wait);background:var(--wait-bg)}.s-run{color:var(--run);background:var(--run-bg)}
+.s-done{color:var(--done);background:var(--done-bg)}.s-stop{color:var(--stop);background:var(--stop-bg)}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:.9rem}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.75rem;letter-spacing:.06em;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:none}
+td.id{font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+td.id small{display:block;color:var(--muted);font-family:var(--sans)}
+td.you{color:var(--wait);font-weight:600}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--done);cursor:pointer}
+input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.empty{padding:24px;color:var(--muted)}
+.foot{color:var(--muted);font-size:.8rem;margin:0}
+</style>
+<div class="wrap">
+  <h1>ミッション状況</h1>
+  <p class="sub" id="sub">読み込み中…</p>
+  <div class="counts" id="counts"></div>
+  <div class="box"><table>
+    <thead><tr><th>ミッション</th><th>やること</th><th>状態</th><th>待っているもの</th><th>次</th><th>確認</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table><div class="empty" id="empty" hidden>まだミッションがありません。agent-team が報告するときに、ここへ行が増えます。</div></div>
+  <p class="foot">完了した行は「確認」にチェックすると消えます。行はエージェントが報告のたびに書き換えます。</p>
+</div>
+<script>
+// 状態の7つと並び順（人間の番 → 進行中 → 完了）
+const ORDER={"判断待ち":0,"計画の承認待ち":0,"止まっている":1,"計画中":2,"実装中":2,"レビュー中":2,"完了":3};
+const CLS={0:"s-wait",1:"s-stop",2:"s-run",3:"s-done"};
+const $=id=>document.getElementById(id);
+let missions=[],seen=new Set();
+function cell(tr,text,cls){const td=document.createElement("td");if(cls)td.className=cls;td.textContent=text||"—";tr.appendChild(td);return td}
+function render(){
+  const list=missions.filter(m=>!(m.status==="完了"&&seen.has(m._id)))
+    .sort((a,b)=>(ORDER[a.status]??2)-(ORDER[b.status]??2)||String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")));
+  const tb=$("rows");tb.textContent="";
+  for(const m of list){
+    const g=ORDER[m.status]??2,tr=document.createElement("tr");
+    const id=cell(tr,m.mid,"id");const r=document.createElement("small");r.textContent=m.repo||"";id.appendChild(r);
+    cell(tr,m.title);
+    const st=document.createElement("td"),c=document.createElement("span");c.className="chip "+CLS[g];c.textContent=m.status||"—";st.appendChild(c);tr.appendChild(st);
+    cell(tr,m.waiting,String(m.waiting||"").startsWith("あなた")?"you":"");
+    cell(tr,m.next);
+    const ck=document.createElement("td");
+    if(m.status==="完了"){const b=document.createElement("input");b.type="checkbox";b.id="seen-"+m._id;
+      b.setAttribute("aria-label",m.mid+" を確認した");b.onchange=()=>markSeen(m._id,b);ck.appendChild(b)}
+    tr.appendChild(ck);tb.appendChild(tr);
+  }
+  $("empty").hidden=list.length>0;
+  const n={0:0,1:0,2:0,3:0};list.forEach(m=>n[ORDER[m.status]??2]++);
+  const lab={0:"あなたの番",1:"止まっている",2:"進行中",3:"完了（未確認）"};
+  $("counts").textContent="";
+  for(const k of [0,1,2,3]){if(!n[k])continue;const s=document.createElement("span");s.className="chip "+CLS[k];s.textContent=lab[k]+" "+n[k];$("counts").appendChild(s)}
+  const last=missions.map(m=>m.updatedAt||"").sort().pop();
+  $("sub").textContent=last?"最終更新 "+last.replace("T"," ").slice(0,16):"まだ更新はありません";
+}
+let db=null;
+async function markSeen(id,box){
+  if(!db)return;box.disabled=true;
+  try{await db.doc("seen/"+id).set({at:new Date().toISOString()})}catch(e){box.disabled=false;box.checked=false;$("sub").textContent="チェックを保存できませんでした。もう一度押してください。"}
+}
+render();
+(async()=>{
+  db=window.claude?await claude.use("db"):null;
+  if(!db){$("sub").textContent="このページの記録を読めません。claude.ai にサインインして開いてください。";return}
+  db.collection("missions").onSnapshot(s=>{missions=s.docs.map(d=>({...d.data(),_id:d.id}));render()},()=>{$("sub").textContent="記録の読み込みが止まりました。ページを開き直してください。"});
+  db.collection("seen").onSnapshot(s=>{seen=new Set(s.docs.map(d=>d.id));render()});
+})();
+</script>
