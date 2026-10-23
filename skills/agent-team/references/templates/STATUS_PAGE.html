@@ -107,8 +107,8 @@ function render(){
   for(const m of list){
     const tr=document.createElement("tr");if(isYou(m))tr.className="you";
     const id=cell(tr,m.mid);id.className="id";
-    // セッションのリンクがあればミッション名から開く（claude:// はそのPCのアプリで開く）。一覧を残すため新しいタブで
-    if(/^(https|claude):\/\/claude\.ai\//.test(m.url||"")){const a=document.createElement("a");a.href=m.url;a.target="_blank";a.rel="noopener";a.textContent=m.mid;id.textContent="";id.appendChild(a)}
+    // セッションのURLがあればミッション名から開く。一覧を残すため新しいタブで
+    if(/^https:\/\/claude\.ai\//.test(m.url||"")){const a=document.createElement("a");a.href=m.url;a.target="_blank";a.rel="noopener";a.textContent=m.mid;id.textContent="";id.appendChild(a)}
     const r=document.createElement("small");r.textContent=proj(m);id.appendChild(r);
     cell(tr,m.title);
     const sc=document.createElement("td");sc.appendChild(chip(m.status||"—",CLS[GROUP[m.status]??2],m.status));tr.appendChild(sc);
