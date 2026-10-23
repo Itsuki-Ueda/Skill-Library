@@ -2,6 +2,7 @@
 
 Status: intake | planning | executing | integrating | done
 Branch: {git-opsに従うブランチ名}
+担当: {作った人の `git config user.email`}
 型: {types/README.md の表で選んだ型を全部（例: feature.md, perf.md）。無ければ なし}
 Active session: <引き継ぎ時に記載・終了時にクリア>
 
