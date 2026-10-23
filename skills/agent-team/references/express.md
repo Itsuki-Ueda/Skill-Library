@@ -17,7 +17,7 @@
 5. 契約外変更なしを確認し、verify.post_changeとverify.smokeを実行する。差分に `.github/workflows/` が含まれる場合は execute.md [6] の zizmor 検査も実行する。テスト契約に変異があれば適用・失敗・復元を確認する。
 6. 親がレビュー・検証した内容だけをcommitする。
 7. STATEのLogにT-E-xxxの結果を1行記録し、状態変更をcommitする。ミッションファイルは作らない。
-8. `templates/REPORT_TEMPLATE.md` の順番で報告し（台帳の1行は無い）、資源を作った場合はgit-opsに従って後片付けする。
+8. `templates/REPORT_TEMPLATE.md` の順番で報告し（expressは台帳に記録しないので、台帳の1行は無い）、資源を作った場合はgit-opsに従って後片付けする。
 
 対象ファイルの増加、設計判断の発生、修正上限超過ならMへ昇格する。
 GENERAL_TEMPLATEで契約を更新し、[2]〜[3]（初回probe・人間承認を含む）を経てミッション工程を続ける。
