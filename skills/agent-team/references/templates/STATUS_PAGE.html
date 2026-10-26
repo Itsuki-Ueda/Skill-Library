@@ -34,6 +34,7 @@ th:last-child,td:last-child{width:1%;white-space:nowrap;text-align:center}
 tr:last-child td{border-bottom:none}
 td.id{font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums}
 td.id a{color:var(--accent)}
+td.id .stale{color:var(--muted);margin-left:6px;vertical-align:-2px;display:inline-flex}
 td.id small{display:block;color:var(--muted);font-family:var(--sans)}
 td.you{color:var(--wait);font-weight:600}
 input[type=checkbox]{width:18px;height:18px;accent-color:var(--done);cursor:pointer}
@@ -67,6 +68,7 @@ const STATES=["計画中","計画の承認待ち","判断待ち","実装中","�
 const GROUP={"計画の承認待ち":0,"判断待ち":0,"止まっている":1,"計画中":2,"実装中":2,"レビュー中":2,"本番確認待ち":3,"完了":4};
 const CLS={0:"s-wait",1:"s-stop",2:"s-run",3:"s-check",4:"s-done"};
 const YOU="あなたの番";
+const CLOCK='<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 4.5V8l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
 const $=id=>document.getElementById(id);
 let missions=[],seen=new Set(),db=null;
 const st={project:"",status:"",remainingOnly:true};
@@ -109,6 +111,8 @@ function render(){
     const id=cell(tr,m.mid);id.className="id";
     // セッションのURLがあればミッション名から開く。同じ画面のまま移る（2026-10-23 人間の希望）
     if(/^https:\/\/claude\.ai\//.test(m.url||"")){const a=document.createElement("a");a.href=m.url;a.target="_top";a.textContent=m.mid;id.textContent="";id.appendChild(a)}
+    // 完了以外で24時間更新の無い行は、文字を増やさず時計のアイコンで知らせる（2026-10-26 人間の希望）
+    if(m.status!=="完了"&&Date.now()-Date.parse(m.updatedAt||0)>864e5){const i=document.createElement("span");i.className="stale";const t="24時間以上更新なし（最終: "+String(m.updatedAt).replace("T"," ").slice(5,16)+"）";i.title=t;i.setAttribute("aria-label",t);i.setAttribute("role","img");i.innerHTML=CLOCK;id.appendChild(i)}
     const r=document.createElement("small");r.textContent=proj(m);id.appendChild(r);
     cell(tr,m.title);
     const sc=document.createElement("td");sc.appendChild(chip(m.status||"—",CLS[GROUP[m.status]??2],m.status));tr.appendChild(sc);
